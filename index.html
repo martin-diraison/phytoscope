@@ -2,9 +2,9 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light">
   <title>Application de visualisation des relevés botaniques</title>
-  <!-- v10 : optimisation ergonomique smartphone / mode terrain -->
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#2f6b3e">
   <meta name="mobile-web-app-capable" content="yes">
@@ -15,12 +15,14 @@
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
+    /* v11 — retour à une ergonomie sobre, thème clair imposé, synchronisation Google robuste */
     :root{
       --bg:#f7f8f5; --panel:#ffffff; --ink:#172015; --muted:#647166; --line:#dfe6dc;
       --brand:#2f6b3e; --brand2:#e5f0df; --accent:#d59b27; --danger:#9d2f2f;
       --shadow:0 14px 35px rgba(25,45,25,.08); --radius:18px;
     }
 
+    html{color-scheme:light;background:var(--bg);-webkit-text-size-adjust:100%;text-size-adjust:100%}
     .appTitle{display:flex;align-items:center;gap:14px}
     .appLogo{width:56px;height:56px;border-radius:15px;box-shadow:0 8px 22px rgba(25,45,25,.15);flex:0 0 auto}
     .installStatus{margin-top:10px}
@@ -54,9 +56,13 @@
     @media(max-width:1040px){.grid,.split{grid-template-columns:1fr}.gradientGrid{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.grid3,.grid2{grid-template-columns:1fr}}
     @media(max-width:760px){
       :root{--radius:14px}
-      body{font-size:15px}
-      header{padding:18px 14px 14px}
-      h1{font-size:1.38rem;line-height:1.15}
+      body{font-size:16px}
+      input,select,textarea{font-size:16px}
+      button,.button{font-size:15px;touch-action:manipulation}
+      header{padding:14px 12px 12px}
+      .appLogo{width:44px;height:44px;border-radius:12px}
+      .appTitle{gap:10px;align-items:flex-start}
+      h1{font-size:1.26rem;line-height:1.15}
       header p{font-size:.92rem;line-height:1.35}
       .betaBadge{display:block;margin:.35rem 0 0}
       .tabs{position:sticky;top:0;z-index:50;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;padding:8px 10px;background:rgba(247,248,245,.97);border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch}
@@ -82,49 +88,11 @@
       .legend,.chartLegend{gap:7px;font-size:.78rem}.legendHelp{padding:8px}.key{align-items:center}
       .gradientGrid{grid-template-columns:1fr;gap:10px}.gradientCard{padding:10px}.gradientHead{display:grid;grid-template-columns:1fr;gap:3px}
       .svgBox{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}.svgBox svg{display:block;width:100%;height:auto}
-      .gradientCard .svgBox svg{min-width:720px}#scatterSvg svg{min-width:920px}
+      .gradientCard .svgBox svg{min-width:680px}#scatterSvg svg{min-width:820px}
       .tableWrap{max-height:440px}.tableWrap table{min-width:720px}
       .miniList{gap:7px}.miniItem{padding:8px}.chartTooltip{max-width:min(310px,calc(100vw - 18px));font-size:.82rem}
     }
-    @media(max-width:420px){.summary{grid-template-columns:1fr}.selectorActions{grid-template-columns:1fr}.tab{font-size:.86rem}.gradientCard .svgBox svg{min-width:690px}#scatterSvg svg{min-width:880px}}
-
-
-    /* v10 — Ergonomie smartphone : mode terrain, boutons tactiles, cartes mobiles */
-    .mobileOnly{display:none!important}
-    .mobileQuickSummary{display:none}
-    .rowCardsMobile{display:none}
-    .mobileChips{display:none}
-    .entrySpeciesClose{display:none}
-    .bottomNavSpacer{display:none}
-    .mobileBottomNav{display:none}
-    .syncDot{width:9px;height:9px;border-radius:999px;background:#d59b27;display:inline-block;box-shadow:0 0 0 2px rgba(255,255,255,.95)}
-    .syncDot.ok{background:#2f7d46}.syncDot.err{background:#9d2f2f}.syncDot.warn{background:#d59b27}.syncDot.off{background:#9a9a9a}
-    @media(max-width:760px){
-      body{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
-      .appTitle{align-items:flex-start}.appLogo{width:44px;height:44px;border-radius:12px}
-      .mobileOnly{display:initial!important}
-      .desktopOnlyMobileHidden{display:none!important}
-      .mobileQuickSummary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-      .quickTile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;box-shadow:0 7px 18px rgba(25,45,25,.05)}
-      .quickTile .label{font-size:.74rem;color:var(--muted);font-weight:750;text-transform:uppercase;letter-spacing:.03em}
-      .quickTile .value{font-size:1rem;font-weight:850;margin-top:3px;line-height:1.16}.quickTile.wide{grid-column:1/-1}
-      .mobileTerrainActions{position:sticky;top:58px;z-index:43;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px;background:rgba(247,248,245,.96);padding:6px 0 8px;backdrop-filter:blur(8px)}
-      .mobileTerrainActions button{min-height:46px;border-radius:14px;font-size:.98rem}
-      .entrySpeciesCard{display:none}
-      .entrySpeciesCard.mobileAddOpen{display:block;position:fixed;z-index:1200;inset:0;background:var(--panel);border-radius:0;border:0;box-shadow:none;overflow:auto;padding:16px 14px calc(92px + env(safe-area-inset-bottom));}
-      .entrySpeciesCard h2{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-      .entrySpeciesClose{display:inline-flex;align-items:center;justify-content:center;background:#fff;color:var(--brand);border:1px solid #b9cfb7;padding:8px 11px;border-radius:999px}
-      .entrySpeciesCard .toolbar{display:grid;grid-template-columns:1fr;gap:12px}.entrySpeciesCard .toolbar .field{width:100%!important;margin-bottom:0!important}.entrySpeciesCard #addSpecies{width:100%;min-height:52px;font-size:1.05rem}
-      .mobileChips{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.chipBtn{border:1px solid #cddbc8;background:#fff;color:#243525;border-radius:999px;padding:9px 12px;font-weight:780;min-width:44px;min-height:42px}.chipBtn.active{background:var(--brand);color:#fff;border-color:var(--brand)}.chipBtn.secondaryActive{background:#edf6e8;color:#244b2c;border-color:#8fb79a}
-      #bbValue,#rowStratum{min-height:44px}.suggestions{position:fixed;left:10px;right:10px;top:132px;max-height:50vh;border-radius:16px}.suggestion{padding:13px 14px}.suggestion b{font-size:.98rem}.suggestion span{font-size:.82rem}
-      .tableWrap.rowsAsTable{display:none}.rowCardsMobile{display:grid;gap:8px;margin-top:10px}.taxonCard{border:1px solid var(--line);border-radius:14px;background:#fbfcf9;padding:11px}.taxonCardTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.taxonCard strong{font-size:.96rem;line-height:1.22}.taxonCardMeta{margin-top:6px;color:var(--muted);font-size:.86rem}.taxonCardActions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.taxonCardActions button{padding:7px 10px;min-height:38px}.coverBadge{font-weight:850;color:#fff;background:var(--brand);border-radius:999px;padding:4px 8px;white-space:nowrap;font-size:.82rem}
-      .mobileBottomNav{display:grid;position:fixed;z-index:1100;left:0;right:0;bottom:0;grid-template-columns:repeat(5,1fr);gap:0;background:rgba(255,255,255,.97);border-top:1px solid var(--line);box-shadow:0 -12px 26px rgba(25,45,25,.12);padding:6px 6px calc(6px + env(safe-area-inset-bottom));backdrop-filter:blur(10px)}
-      .mobileBottomNav button{background:transparent;color:#526050;border:0;border-radius:12px;padding:7px 4px;min-height:52px;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;font-size:.72rem;font-weight:760}.mobileBottomNav button.active{background:var(--brand2);color:var(--brand)}.mobileBottomNav .navIcon{font-size:1.15rem;line-height:1}.mobileBottomNav .syncMini{font-size:.68rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:3px}
-      .svgBox{overflow-x:auto;-webkit-overflow-scrolling:touch}.svgBox svg{min-width:740px}.gradientCard .svgBox svg{min-width:760px}#scatterSvg svg{min-width:900px}
-      .selectorPanel,.legendHelp{max-height:170px;overflow:auto}.checkItem{min-height:38px}.miniBtn{min-height:34px}.switch{min-height:38px}
-      .syncStatus{font-size:.84rem}.syncStatus strong{display:inline}.row.noPrint button,.toolbar button{min-height:42px}
-    }
-
+    @media(max-width:420px){.summary{grid-template-columns:1fr}.selectorActions{grid-template-columns:1fr}.tab{font-size:.86rem}.gradientCard .svgBox svg{min-width:650px}#scatterSvg svg{min-width:790px}}
     @media print{header,.tabs,.noPrint,button{display:none!important}main{padding:0}.card{box-shadow:none;break-inside:avoid}.view{display:block!important}.tableWrap{max-height:none;overflow:visible}}
   </style>
 </head>
@@ -146,17 +114,8 @@
   <button class="tab" data-view="data">Export / import</button>
   <button class="tab" data-view="refs">Référentiels</button>
 </nav>
-<div class="mobileBottomNav noPrint" id="mobileBottomNav" aria-label="Navigation mobile">
-  <button data-mobile-target="entry" class="active"><span class="navIcon">✚</span><span>Saisie</span></button>
-  <button data-mobile-target="gradients"><span class="navIcon">▤</span><span>Gradients</span></button>
-  <button data-mobile-target="scatter"><span class="navIcon">◌</span><span>Ecogrammes</span></button>
-  <button data-mobile-target="data"><span class="navIcon">⇄</span><span>Sync</span></button>
-  <button id="mobileSyncMini" data-mobile-target="data"><span class="syncMini"><span class="syncDot warn"></span><span>local</span></span><span>État</span></button>
-</div>
 <main>
   <section id="entry" class="view active">
-    <div id="mobileQuickSummary" class="mobileQuickSummary noPrint"></div>
-    <div class="mobileTerrainActions mobileOnly noPrint"><button id="mobileOpenAddSpecies">+ Ajouter une espèce</button><button class="secondary" data-mobile-target="data">Synchroniser</button></div>
     <div class="grid">
       <aside class="card">
         <h2>Relevé actif</h2>
@@ -174,18 +133,18 @@
         <div class="field"><label>Notes</label><textarea id="relNotes" placeholder="Contexte, physionomie, perturbations, remarques..."></textarea></div>
         <div class="notice small">Les modifications sont enregistrées automatiquement dans le navigateur. Utiliser l’export JSON pour sécuriser ou transférer les relevés.</div>
       </aside>
-      <div class="card entrySpeciesCard" id="entrySpeciesCard">
-        <h2>Ajouter une espèce <button type="button" class="entrySpeciesClose noPrint" id="entrySpeciesClose">Fermer</button></h2>
+      <div class="card">
+        <h2>Ajouter une espèce</h2>
         <div class="toolbar">
           <div class="field grow suggestWrap" style="margin-bottom:0"><label>Espèce ou synonyme</label><input id="speciesSearch" autocomplete="off" placeholder="Taper quelques lettres : genre, espèce, synonyme, sol nu..."><div id="suggestions" class="suggestions"></div></div>
-          <div class="field" style="width:180px;margin-bottom:0"><label>Strate</label><select id="rowStratum"></select><div id="stratumChips" class="mobileChips noPrint"></div></div>
+          <div class="field" style="width:180px;margin-bottom:0"><label>Strate</label><select id="rowStratum"></select></div>
           <div class="field" style="width:150px;margin-bottom:0"><label>Mode</label><select id="coverMode"><option value="bb">Braun-Blanquet</option><option value="pct">%</option></select></div>
-          <div class="field" id="bbField" style="width:120px;margin-bottom:0"><label>Coeff.</label><select id="bbValue"><option value="i">i</option><option value="r">r</option><option value="+">+</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select><div id="bbChips" class="mobileChips noPrint"></div></div>
+          <div class="field" id="bbField" style="width:120px;margin-bottom:0"><label>Coeff.</label><select id="bbValue"><option value="i">i</option><option value="r">r</option><option value="+">+</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
           <div class="field" id="pctField" style="width:120px;margin-bottom:0;display:none"><label>%</label><input id="pctValue" type="number" min="0" max="100" step="0.01" value="1"></div>
           <button id="addSpecies" style="align-self:end">Ajouter</button>
         </div>
         <div id="selectedTaxon" class="small muted" style="margin:4px 0 12px">Aucune espèce sélectionnée.</div>
-        <div class="tableWrap rowsAsTable"><table id="rowsTable"></table></div><div id="rowCardsMobile" class="rowCardsMobile noPrint"></div>
+        <div class="tableWrap"><table id="rowsTable"></table></div>
       </div>
       <div class="card full">
         <h2>Synthèse du relevé actif</h2>
@@ -357,7 +316,7 @@ function initStatic(){
   fillSelect("xGrad", GRADIENTS.map((g,i)=>({value:i,label:g.label})), 4);
   fillSelect("yGrad", GRADIENTS.map((g,i)=>({value:i,label:g.label})), 6);
 }
-function renderAll(){ensureSelections(); syncColorBlindToggles(); renderReleveSelect(); renderMeta(); renderRows(); renderSummary(); renderMobileSummary(); renderMobileControls(); renderSelectionControls(); renderGradientCharts(); renderScatter(); renderCompare(); renderSyncPanel(); syncMobileNav();}
+function renderAll(){ensureSelections(); syncColorBlindToggles(); renderReleveSelect(); renderMeta(); renderRows(); renderSummary(); renderSelectionControls(); renderGradientCharts(); renderScatter(); renderCompare(); renderSyncPanel();}
 function renderReleveSelect(){const sel=document.getElementById("releveSelect"); sel.innerHTML=state.releves.map(r=>`<option value="${r.id}">${esc(r.name||"Sans nom")} · ${r.rows.length} taxons</option>`).join(""); sel.value=current().id;}
 const RELEVE_PALETTE=["#1f77b4","#d62728","#2ca02c","#9467bd","#ff7f0e","#17becf","#8c564b","#e377c2","#4c78a8","#b279a2","#59a14f","#f28e2b"];
 const RELEVE_PALETTE_CB=["#0072B2","#D55E00","#009E73","#CC79A7","#E69F00","#56B4E9","#F0E442","#000000","#7F3C8D","#11A579","#3969AC","#F2B701"];
@@ -374,34 +333,11 @@ function legendFor(groups){return groups.map(grp=>`<span class="key"><span class
 function tipAttr(txt){return `class="tipPoint" tabindex="0" data-tip="${esc(String(txt||"").replace(/\s+/g," "))}"`;}
 
 function renderMeta(){const r=current(); relName.value=r.name||""; relDate.value=r.date||""; relObserver.value=r.observer||""; relLocation.value=r.location||""; relArea.value=r.area||""; relNotes.value=r.notes||"";}
-
-function syncMobileNav(){
-  const active=document.querySelector(".tab.active")?.dataset.view||"entry";
-  document.querySelectorAll("#mobileBottomNav [data-mobile-target]").forEach(b=>b.classList.toggle("active", b.dataset.mobileTarget===active));
-}
-function activateView(view){
-  const tab=[...document.querySelectorAll(".tab")].find(b=>b.dataset.view===view);
-  if(tab) tab.click();
-}
-function renderMobileSummary(){
-  const box=document.getElementById("mobileQuickSummary"); if(!box)return; const r=current(); const rows=rowsWithTaxa(r); const cov=rows.reduce((a,x)=>a+pct(x.row),0); const withVals=rows.filter(({t})=>t.v.some(v=>v!=null)).length; const s=stats(r); const he=s[4]?.wmean, ph=s[5]?.wmean, troph=s[6]?.wmean;
-  box.innerHTML=`<div class="quickTile wide"><div class="label">Relevé actif</div><div class="value">${esc(r.name||"Sans nom")}</div></div>`+
-    [["Taxons",r.rows.length],["Avec indices",withVals],["Recouvrement",fmt(cov,1)+" %"],["H. édaphique",fmt(he,2)],["pH",fmt(ph,2)],["Trophie",fmt(troph,2)]].map(([l,v])=>`<div class="quickTile"><div class="label">${esc(l)}</div><div class="value">${esc(v)}</div></div>`).join("");
-}
-function renderMobileControls(){
-  const sc=document.getElementById("stratumChips"), bc=document.getElementById("bbChips");
-  if(sc && rowStratum){sc.innerHTML=[...rowStratum.options].map(o=>`<button type="button" class="chipBtn ${o.value===rowStratum.value?"active":""}" data-stratum-chip="${esc(o.value)}">${esc(o.textContent)}</button>`).join("");}
-  if(bc && bbValue){bc.innerHTML=[...bbValue.options].map(o=>`<button type="button" class="chipBtn ${o.value===bbValue.value?"active":""}" data-bb-chip="${esc(o.value)}">${esc(o.textContent)}</button>`).join("");}
-}
-function openMobileAddSpecies(){const card=document.getElementById("entrySpeciesCard"); if(card){card.classList.add("mobileAddOpen"); setTimeout(()=>speciesSearch?.focus(),80);}}
-function closeMobileAddSpecies(){document.getElementById("entrySpeciesCard")?.classList.remove("mobileAddOpen"); suggestions?.classList.remove("open");}
-function renderRows(){const r=current(); const table=document.getElementById("rowsTable"); const cards=document.getElementById("rowCardsMobile");
-  if(!r.rows.length){table.innerHTML=`<tbody><tr><td><div class="empty">Aucune espèce saisie pour ce relevé.</div></td></tr></tbody>`; if(cards)cards.innerHTML=`<div class="empty">Aucune espèce saisie pour ce relevé.</div>`; return;}
+function renderRows(){const r=current(); const table=document.getElementById("rowsTable");
+  if(!r.rows.length){table.innerHTML=`<tbody><tr><td><div class="empty">Aucune espèce saisie pour ce relevé.</div></td></tr></tbody>`;return;}
   table.innerHTML=`<thead><tr><th>Espèce</th><th>Synonyme / forme simplifiée</th><th>Strate</th><th class="num">Recouvrement</th><th class="num">% calcul</th><th class="noPrint"></th></tr></thead><tbody>`+
   r.rows.map((row,idx)=>{const t=byId.get(row.tid)||{};return `<tr><td><strong>${esc(t.n||"Taxon inconnu")}</strong></td><td class="small muted">${esc(t.s||"")}</td><td>${esc(row.stratum||"")}</td><td class="num">${row.mode==="pct"?fmt(row.cover)+" %":esc(row.cover)}</td><td class="num">${fmt(pct(row),2)}</td><td class="num noPrint"><button class="ghost" onclick="moveRow(${idx},-1)">↑</button><button class="ghost" onclick="moveRow(${idx},1)">↓</button><button class="ghost" onclick="removeRow(${idx})">Retirer</button></td></tr>`}).join("")+`</tbody>`;
-  if(cards)cards.innerHTML=r.rows.map((row,idx)=>{const t=byId.get(row.tid)||{}; const coverTxt=row.mode==="pct"?fmt(row.cover)+" %":esc(row.cover); return `<article class="taxonCard"><div class="taxonCardTop"><strong>${esc(t.n||"Taxon inconnu")}</strong><span class="coverBadge">${coverTxt}</span></div><div class="taxonCardMeta">${esc(row.stratum||"strate non renseignée")} · ${fmt(pct(row),2)} % calculé${t.s?" · "+esc(t.s):""}</div><div class="taxonCardActions"><button class="secondary" onclick="editRowMobile(${idx})">Modifier</button><button class="ghost" onclick="moveRow(${idx},-1)">↑</button><button class="ghost" onclick="moveRow(${idx},1)">↓</button><button class="danger" onclick="removeRow(${idx})">Retirer</button></div></article>`}).join("");
 }
-window.editRowMobile=function(idx){const row=current().rows[idx]; if(!row)return; const next=prompt(row.mode==="pct"?"Nouveau recouvrement en %":"Nouveau coefficient Braun-Blanquet : i, r, +, 1, 2, 3, 4 ou 5", row.cover); if(next==null)return; const val=(next+"").trim(); if(row.mode==="pct"){const n=parseFloat(val.replace(",",".")); if(Number.isNaN(n)||n<0){alert("Valeur de recouvrement non valide.");return;} row.cover=Math.min(100,n);} else {if(!Object.prototype.hasOwnProperty.call(BB,val)){alert("Coefficient Braun-Blanquet non reconnu.");return;} row.cover=val;} save(); renderAll();}
 function renderSummary(){const r=current(); const rows=rowsWithTaxa(r); const cov=rows.reduce((a,x)=>a+pct(x.row),0); const withVals=rows.filter(({t})=>t.v.some(v=>v!=null)).length; const st=[...new Set(rows.map(x=>x.row.stratum||""))].filter(Boolean);
   const s=stats(r); const complete=s.filter(x=>x.n>0).length;
   document.getElementById("summary").innerHTML = [
@@ -479,7 +415,7 @@ function renderCompare(){const filter=compareStratum.value||"Toutes strates"; co
 function searchTaxa(q){q=norm(q); if(q.length<2)return[]; const terms=q.split(" ").filter(Boolean); const res=[]; for(const t of TAXA){let score=999; if(t.nn.startsWith(q))score=0; else if(t.ns.startsWith(q))score=1; else if(terms.every(x=>t.nn.includes(x)))score=2; else if(terms.every(x=>t.q.includes(x)))score=3; else if(t.q.includes(q))score=5; if(score<999)res.push([score,t]);} return res.sort((a,b)=>a[0]-b[0] || a[1].n.localeCompare(b[1].n)).slice(0,14).map(x=>x[1]);}
 function showSuggestions(items){const box=suggestions; if(!items.length){box.classList.remove("open");box.innerHTML="";return;} box.innerHTML=items.map(t=>`<div class="suggestion" data-id="${t.id}"><b>${esc(t.n)}</b><span>${esc(t.s||"")}</span></div>`).join(""); box.classList.add("open");}
 function selectTaxon(id){selectedTaxon=byId.get(Number(id)); if(!selectedTaxon)return; speciesSearch.value=selectedTaxon.n; if(selectedTaxon.id===-1 && rowStratum)rowStratum.value="Sans végétation"; document.getElementById("selectedTaxon").innerHTML=`Taxon sélectionné : <strong>${esc(selectedTaxon.n)}</strong> <span class="muted">${esc(selectedTaxon.s||"")}</span>`; suggestions.classList.remove("open");}
-function addSelected(){if(!selectedTaxon && norm(speciesSearch.value)==="sol nu")selectedTaxon=byId.get(-1); if(!selectedTaxon){alert("Sélectionner une espèce ou « sol nu » dans la liste de recherche.");return;} const r=current(); const mode=coverMode.value; const cover=mode==="pct"?parseFloat(pctValue.value||0):bbValue.value; const stratum=selectedTaxon.id===-1?"Sans végétation":rowStratum.value; r.rows.push({tid:selectedTaxon.id,stratum,mode,cover}); selectedTaxon=null; speciesSearch.value=""; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; save(); renderAll(); setTimeout(()=>speciesSearch?.focus(),50);}
+function addSelected(){if(!selectedTaxon && norm(speciesSearch.value)==="sol nu")selectedTaxon=byId.get(-1); if(!selectedTaxon){alert("Sélectionner une espèce ou « sol nu » dans la liste de recherche.");return;} const r=current(); const mode=coverMode.value; const cover=mode==="pct"?parseFloat(pctValue.value||0):bbValue.value; const stratum=selectedTaxon.id===-1?"Sans végétation":rowStratum.value; r.rows.push({tid:selectedTaxon.id,stratum,mode,cover}); selectedTaxon=null; speciesSearch.value=""; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; save(); renderAll();}
 window.removeRow=function(idx){current().rows.splice(idx,1); save(); renderAll();}
 window.moveRow=function(idx,delta){const rows=current().rows; const j=idx+delta; if(j<0||j>=rows.length)return; [rows[idx],rows[j]]=[rows[j],rows[idx]]; save(); renderAll();}
 function updateMeta(){const r=current(); r.name=relName.value; r.date=relDate.value; r.observer=relObserver.value; r.location=relLocation.value; r.area=relArea.value; r.notes=relNotes.value; save(); renderReleveSelect(); renderSummary(); renderCompare(); renderScatter();}
@@ -501,8 +437,6 @@ function renderSyncPanel(){
   if(syncState.dirty) parts.push("<strong>Modifications locales non synchronisées.</strong>");
   const cls=!syncState.clientId?"warn":(syncState.dirty?"warn":"ok");
   syncSetMessage(parts.join(" "), cls);
-  const mini=document.getElementById("mobileSyncMini");
-  if(mini){const dotClass=!syncState.clientId?"off":(syncState.dirty?"warn":"ok"); const label=!syncState.clientId?"local":(syncState.dirty?"à sync":"sync ok"); mini.querySelector(".syncMini").innerHTML=`<span class="syncDot ${dotClass}"></span><span>${label}</span>`;}
 }
 function requireClientId(){
   const input=document.getElementById("googleClientId");
@@ -573,7 +507,7 @@ async function ensureGoogleSheetLinked(createIfMissing=true){
 function sheetRowsReleves(){return [["releve_id","nom","date","observateur","localisation","surface","notes","nb_lignes"]].concat(state.releves.map(r=>[r.id,r.name||"",r.date||"",r.observer||"",r.location||"",r.area||"",r.notes||"",(r.rows||[]).length]));}
 function sheetRowsLignes(){const rows=[["ligne_id","releve_id","releve_nom","taxon_id","taxon","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule","sol_nu",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>(r.rows||[]).forEach((row,i)=>{const t=byId.get(row.tid)||{n:"",s:"",v:[]}; rows.push([`${r.id}:${i+1}`,r.id,r.name||"",row.tid??"",t.n||"",t.s||"",row.stratum||"",row.mode||"",row.cover??"",pct(row),row.tid===-1?"oui":"",...GRADIENTS.map((g,j)=>t.v?.[j]??"")]);})); return rows;}
 function sheetRowsSynthese(){const rows=[["releve_id","releve_nom","strate","gradient","code","moyenne_simple","moyenne_ponderee","ecart_type_simple","ecart_type_pondere","nb_taxons_utilises","nb_taxons_sans_indice","recouvrement_utilise"]]; state.releves.forEach(r=>stats(r,"Toutes strates").forEach(x=>rows.push([r.id,r.name||"","Toutes strates",x.g.label,x.g.short,x.mean??"",x.wmean??"",x.sd??"",x.wsd??"",x.n,x.missing,x.sw??""]))); return rows;}
-function sheetRowsParametres(){return [["cle","valeur"],["version_application","v8_google_drive"],["source_indices","Baseflor simplifiée"],["conversion_i","0.01"],["conversion_r","0.1"],["conversion_+","0.5"],["conversion_1","2.5"],["conversion_2","15"],["conversion_3","37.5"],["conversion_4","62.5"],["conversion_5","87.5"],["exporte_le",new Date().toISOString()]];}
+function sheetRowsParametres(){return [["cle","valeur"],["version_application","v11_mobile_sobre"],["source_indices","Baseflor simplifiée"],["conversion_i","0.01"],["conversion_r","0.1"],["conversion_+","0.5"],["conversion_1","2.5"],["conversion_2","15"],["conversion_3","37.5"],["conversion_4","62.5"],["conversion_5","87.5"],["exporte_le",new Date().toISOString()]];}
 function sheetRowsEtat(){const json=JSON.stringify(remoteJsonSnapshot()); const size=35000; const chunks=[]; for(let i=0;i<json.length;i+=size)chunks.push(json.slice(i,i+size)); return [["chunk_index","chunk_count","json_chunk"]].concat(chunks.map((c,i)=>[i+1,chunks.length,c]));}
 async function pushToGoogleSheet(){
   const id=await ensureGoogleSheetLinked(true);
@@ -590,23 +524,71 @@ async function pushToGoogleSheet(){
   await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchUpdate`,{method:"POST",body:JSON.stringify({valueInputOption:"RAW",data})});
   syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderSyncPanel(); alert("Synchronisation vers Google Sheet terminée.");
 }
+
+async function pullStateFromGoogleTables(id){
+  const relData = await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/releves!A2:H`);
+  const lineData = await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/lignes_releve!A2:K`);
+  const relRows = relData.values || [];
+  if(!relRows.length) throw new Error("Aucun relevé exploitable dans les onglets tabulaires du Google Sheet.");
+  const rels = relRows.map(r=>({
+    id: String(r[0]||uid()),
+    name: r[1]||"Sans nom",
+    date: r[2]||"",
+    observer: r[3]||"",
+    location: r[4]||"",
+    area: r[5]||"",
+    notes: r[6]||"",
+    rows: []
+  }));
+  const byRel = new Map(rels.map(r=>[r.id,r]));
+  (lineData.values||[]).forEach(l=>{
+    const rid = String(l[1]||"");
+    const rel = byRel.get(rid);
+    if(!rel) return;
+    const tidRaw = (l[3] ?? "").toString().trim();
+    const tid = tidRaw === "" ? null : Number(tidRaw);
+    const mode = (l[7]||"bb").toString().trim() || "bb";
+    let cover = l[8] ?? "";
+    if(mode === "pct"){
+      const n = parseFloat(String(cover).replace(",","."));
+      cover = Number.isFinite(n) ? n : 0;
+    } else {
+      cover = String(cover || "i");
+    }
+    if(tid === null || (!byId.has(tid) && tid !== -1)) return;
+    rel.rows.push({tid, stratum: l[6]||"Herbacée", mode, cover});
+  });
+  return {selectedId: rels[0]?.id, releves: rels, colorBlind: !!state.colorBlind, gradientSelectedIds: rels[0]?[rels[0].id]:[], scatterSelectedIds: rels[0]?[rels[0].id]:[]};
+}
 async function pullFromGoogleSheet(){
   const id=await ensureGoogleSheetLinked(true);
   syncSetMessage("Récupération des relevés depuis Google Sheet…","warn");
-  const data=await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/etat_application!A2:C`);
-  const rows=data.values||[];
-  if(!rows.length) throw new Error("L’onglet etat_application ne contient pas encore de sauvegarde JSON.");
-  rows.sort((a,b)=>(parseInt(a[0]||"0",10)||0)-(parseInt(b[0]||"0",10)||0));
-  const json=rows.map(r=>r[2]||"").join("");
-  const remote=JSON.parse(json);
+  let remote=null;
+  let mode="etat_application";
+  try{
+    const data=await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/etat_application!A2:C`);
+    const rows=data.values||[];
+    if(!rows.length) throw new Error("L’onglet etat_application ne contient pas encore de sauvegarde JSON.");
+    rows.sort((a,b)=>(parseInt(a[0]||"0",10)||0)-(parseInt(b[0]||"0",10)||0));
+    const json=rows.map(r=>r[2]||"").join("");
+    remote=JSON.parse(json);
+    if(!remote.releves || !Array.isArray(remote.releves)) throw new Error("Le contenu distant n’est pas un état valide de l’application.");
+  }catch(jsonErr){
+    console.warn("Restauration JSON impossible, reconstruction depuis les onglets tabulaires.", jsonErr);
+    mode="onglets tabulaires";
+    remote=await pullStateFromGoogleTables(id);
+  }
   if(!remote.releves || !Array.isArray(remote.releves)) throw new Error("Le contenu distant n’est pas un état valide de l’application.");
-  if(!confirm("Remplacer les relevés locaux par ceux du Google Sheet ?")) {renderSyncPanel(); return;}
+  remote.releves.forEach(r=>{ if(!Array.isArray(r.rows)) r.rows=[]; });
+  if(!remote.releves.length) throw new Error("Le Google Sheet ne contient aucun relevé.");
+  if(!remote.selectedId || !remote.releves.some(r=>r.id===remote.selectedId)) remote.selectedId=remote.releves[0].id;
+  if(!confirm(`Remplacer les relevés locaux par ceux du Google Sheet ?\nSource utilisée : ${mode}.`)) {renderSyncPanel(); return;}
   suppressDirty=true;
   state=remote;
   if(!state.selectedId && state.releves[0]) state.selectedId=state.releves[0].id;
   localStorage.setItem(STORE_KEY, JSON.stringify(state));
   suppressDirty=false;
-  syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderAll(); alert("Récupération depuis Google Sheet terminée.");
+  syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderAll(); alert(`Récupération depuis Google Sheet terminée. ${state.releves.length} relevé(s) chargé(s).`);
 }
 async function handleGoogleAction(action){
   try{
@@ -655,12 +637,6 @@ function bind(){
  if(window.googlePull)googlePull.addEventListener("click",()=>handleGoogleAction("pull"));
  if(window.googleOpenSheet)googleOpenSheet.addEventListener("click",()=>handleGoogleAction("open"));
  if(window.googleForgetSheet)googleForgetSheet.addEventListener("click",()=>handleGoogleAction("forget"));
- document.querySelectorAll("#mobileBottomNav [data-mobile-target], .mobileTerrainActions [data-mobile-target]").forEach(btn=>btn.addEventListener("click",()=>activateView(btn.dataset.mobileTarget)));
- if(window.mobileOpenAddSpecies)mobileOpenAddSpecies.addEventListener("click",openMobileAddSpecies);
- if(window.entrySpeciesClose)entrySpeciesClose.addEventListener("click",closeMobileAddSpecies);
- document.addEventListener("click",e=>{const sb=e.target.closest?.("[data-stratum-chip]"); if(sb){rowStratum.value=sb.dataset.stratumChip; renderMobileControls();} const bb=e.target.closest?.("[data-bb-chip]"); if(bb){bbValue.value=bb.dataset.bbChip; renderMobileControls();}});
- [rowStratum,bbValue].filter(Boolean).forEach(el=>el.addEventListener("change",renderMobileControls));
-
 
 }
 

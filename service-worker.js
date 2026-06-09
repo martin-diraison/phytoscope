@@ -1,4 +1,4 @@
-const CACHE_NAME = 'releves-botaniques-v10-mobile-terrain';
+const CACHE_NAME = "releves-botaniques-pwa-v11-mobile-sobre-20260609";
 const APP_SHELL = [
   "./",
   "./index.html",
