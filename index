@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Application de visualisation des relevés botaniques</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root{
       --bg:#f7f8f5; --panel:#ffffff; --ink:#172015; --muted:#647166; --line:#dfe6dc;
@@ -31,6 +32,11 @@
     .gradientGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.gradientCard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}.gradientHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:6px}.gradientHead strong{font-size:.96rem}.svgBox{width:100%;overflow:hidden}.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;color:var(--muted);font-size:.84rem}.key{display:inline-flex;align-items:center;gap:6px}.swatch{width:12px;height:12px;border-radius:50%;background:var(--brand);display:inline-block}.swatch.mean{border-radius:2px;background:#172015}.swatch.sd{border-radius:2px;background:#d9e8d4}.swatch.wmean{border-radius:0;background:var(--accent)}.selectorPanel{border:1px solid var(--line);background:#fbfcf9;border-radius:14px;padding:10px;margin:8px 0 10px}.selectorPanelHeader{display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px}.selectorActions{display:flex;gap:6px;flex-wrap:wrap}.miniBtn{padding:6px 9px;font-size:.78rem}.checkList{display:flex;gap:8px;flex-wrap:wrap}.checkItem{display:inline-flex;align-items:center;gap:6px;border:1px solid #e1e8de;background:#fff;border-radius:999px;padding:5px 9px;font-size:.84rem;cursor:pointer}.checkItem input{accent-color:var(--brand);min-width:auto}.colorDot{width:12px;height:12px;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 0 0 3px rgba(0,0,0,.06)}.chartLegend{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 8px;color:var(--muted);font-size:.84rem}.legendHelp{border:1px solid #e5eadf;background:#fbfcf9;border-radius:14px;padding:8px 10px}.lineLegend{width:24px;height:0;border-top:3px solid currentColor;display:inline-block}.lineLegend.dashed{border-top-style:dashed;border-top-width:2px}.bandLegend{width:26px;height:12px;border-radius:4px;background:currentColor;opacity:.18;display:inline-block}.pointLegend{width:12px;height:12px;border-radius:50%;background:currentColor;display:inline-block;box-shadow:0 0 0 1px #fff inset}.chartTooltip{position:fixed;display:none;z-index:1000;max-width:340px;padding:9px 11px;border-radius:12px;background:#172015;color:#fff;box-shadow:0 16px 40px rgba(0,0,0,.22);font-size:.86rem;line-height:1.35;pointer-events:none}.tipPoint{cursor:help}.tipPoint:focus{outline:none}.switch{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 10px;color:var(--ink)}.switch input{min-width:auto;accent-color:var(--brand)}
     .notice{border-left:4px solid var(--accent);background:#fff9e9;padding:12px 14px;border-radius:12px;color:#4d3e1d}.empty{padding:24px;border:1px dashed #c6d2c2;border-radius:16px;text-align:center;color:var(--muted);background:#fbfcf9}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.toolbar>*{flex:0 0 auto}.toolbar .grow{flex:1 1 260px}
     .split{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}.miniList{display:grid;gap:8px}.miniItem{border:1px solid var(--line);border-radius:12px;padding:9px;background:#fbfcf9}.miniItem strong{display:block}
+
+    .syncStatus{border:1px solid var(--line);background:#fbfcf9;border-radius:14px;padding:10px;margin:10px 0;color:var(--muted);font-size:.9rem}
+    .syncStatus strong{color:var(--ink)}
+    .syncStatus.ok{border-color:#b9d8b9;background:#f2fbf0}.syncStatus.warn{border-color:#e6d19a;background:#fff9e9}.syncStatus.err{border-color:#e5b5b5;background:#fff2f2}
+    .syncGrid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:10px;align-items:end}
     @media(max-width:1040px){.grid,.split{grid-template-columns:1fr}.gradientGrid{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.grid3,.grid2{grid-template-columns:1fr}}
     @media(max-width:760px){
       :root{--radius:14px}
@@ -45,7 +51,7 @@
       main{padding:12px 10px 30px}
       .card{padding:12px;border-radius:14px;box-shadow:0 8px 22px rgba(25,45,25,.07)}
       .card h2{font-size:1.05rem}.card h3{font-size:.98rem}
-      .grid,.split,.grid2,.grid3{grid-template-columns:1fr!important;gap:12px}
+      .grid,.split,.grid2,.grid3,.syncGrid{grid-template-columns:1fr!important;gap:12px}
       .summary{grid-template-columns:1fr 1fr;gap:8px}
       .metric{padding:9px}.metric .value{font-size:1.05rem}
       .toolbar{display:grid;grid-template-columns:1fr;align-items:stretch;gap:9px}
@@ -164,6 +170,24 @@
 
   <section id="data" class="view">
     <div class="grid2">
+      <div class="card full">
+        <h2>Synchronisation Google Drive / Google Sheet</h2>
+        <p class="muted">Option de synchronisation individuelle : chaque utilisateur conserve ses relevés dans un Google Sheet personnel situé dans son propre Google Drive. La saisie reste enregistrée localement dans le navigateur ; la synchronisation est déclenchée manuellement.</p>
+        <div class="syncGrid noPrint">
+          <div class="field" style="margin-bottom:0"><label>Client ID Google OAuth</label><input id="googleClientId" placeholder="Ex. 1234567890-xxxxxxxxxxxxxxxx.apps.googleusercontent.com"></div>
+          <button class="secondary" id="saveGoogleClientId">Enregistrer le Client ID</button>
+        </div>
+        <div id="googleSyncStatus" class="syncStatus">Synchronisation Google non configurée.</div>
+        <div class="row noPrint">
+          <button id="googleSignIn">Se connecter à Google</button>
+          <button class="secondary" id="googleEnsureSheet">Créer / retrouver le Google Sheet</button>
+          <button class="secondary" id="googlePush">Envoyer vers Google Sheet</button>
+          <button class="secondary" id="googlePull">Récupérer depuis Google Sheet</button>
+          <button class="ghost" id="googleOpenSheet">Ouvrir le Google Sheet</button>
+          <button class="ghost" id="googleForgetSheet">Oublier la liaison</button>
+        </div>
+        <p class="small muted">Prévoir une sauvegarde JSON régulière : Google Sheet facilite le multi-appareils, mais l’export JSON reste la sauvegarde scientifique la plus complète.</p>
+      </div>
       <div class="card"><h2>Export des relevés</h2><p class="muted">Export JSON autonome contenant les métadonnées et les lignes floristiques. Les valeurs Baseflor restent embarquées dans l’application.</p><div class="row"><button id="exportJson">Télécharger JSON</button><button class="secondary" id="exportCsv">Télécharger CSV lignes</button></div></div>
       <div class="card"><h2>Import de relevés</h2><p class="muted">Import d’un export JSON généré par cette application. L’import remplace les relevés actuellement stockés après confirmation.</p><input type="file" id="importJson" accept="application/json,.json"></div>
       <div class="card full"><h2>Table de conversion Braun-Blanquet</h2><table><thead><tr><th>Coefficient</th><th class="num">Recouvrement utilisé</th><th>Interprétation</th></tr></thead><tbody><tr><td>i</td><td class="num">0,01 %</td><td>Individu isolé ; conversion arbitraire demandée.</td></tr><tr><td>r</td><td class="num">0,1 %</td><td>Très rare.</td></tr><tr><td>+</td><td class="num">0,5 %</td><td>Peu abondant, recouvrement négligeable.</td></tr><tr><td>1</td><td class="num">2,5 %</td><td>Abondant mais faible recouvrement.</td></tr><tr><td>2</td><td class="num">15 %</td><td>Recouvrement intermédiaire.</td></tr><tr><td>3</td><td class="num">37,5 %</td><td>Recouvrement important.</td></tr><tr><td>4</td><td class="num">62,5 %</td><td>Recouvrement très important.</td></tr><tr><td>5</td><td class="num">87,5 %</td><td>Recouvrement quasi continu.</td></tr></tbody></table></div>
@@ -202,6 +226,9 @@ const GRADIENT_TERMS = {
 const STRATA = ["Toutes strates","Herbacée","Arbustive","Arborée","Bryo-lichénique","Sans végétation","Autre"];
 const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
+const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
+const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
+const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 function norm(s){return (s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();}
 TAXA.forEach(t=>{t.nn=norm(t.n); t.ns=norm(t.s); t.q=(t.nn+" "+t.ns).trim();});
@@ -210,11 +237,26 @@ function today(){return new Date().toISOString().slice(0,10)}
 function blankReleve(name="Nouveau relevé"){return {id:uid(),name,date:today(),observer:"",location:"",area:"",notes:"",rows:[]}}
 let state = loadState();
 let selectedTaxon = null;
+let syncState = loadSyncState();
+let googleAccessToken = null;
+let googleTokenExpiry = 0;
+let googleTokenClient = null;
+let suppressDirty = false;
 function loadState(){
   try{const s=JSON.parse(localStorage.getItem(STORE_KEY)); if(s && Array.isArray(s.releves)) return s;}catch(e){}
   const r=blankReleve("Relevé 1"); return {selectedId:r.id,releves:[r]};
 }
-function save(){localStorage.setItem(STORE_KEY, JSON.stringify(state));}
+function loadSyncState(){
+  try{return JSON.parse(localStorage.getItem(GOOGLE_SYNC_KEY)) || {};}catch(e){return {};}
+}
+function saveSyncState(){localStorage.setItem(GOOGLE_SYNC_KEY, JSON.stringify(syncState||{}));}
+function markUnsynced(){
+  if(suppressDirty)return;
+  if(syncState && (syncState.spreadsheetId || syncState.clientId || syncState.lastSyncAt)){
+    syncState.dirty = true; saveSyncState(); renderSyncPanel?.();
+  }
+}
+function save(){localStorage.setItem(STORE_KEY, JSON.stringify(state)); markUnsynced();}
 function current(){let r=state.releves.find(x=>x.id===state.selectedId); if(!r){r=state.releves[0]||blankReleve("Relevé 1"); if(!state.releves.length)state.releves.push(r); state.selectedId=r.id;} return r;}
 function esc(s){return (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
 function fmt(x,d=2){return x==null||Number.isNaN(x)?"—":Number(x).toLocaleString("fr-FR",{maximumFractionDigits:d,minimumFractionDigits:0});}
@@ -243,7 +285,7 @@ function initStatic(){
   fillSelect("xGrad", GRADIENTS.map((g,i)=>({value:i,label:g.label})), 4);
   fillSelect("yGrad", GRADIENTS.map((g,i)=>({value:i,label:g.label})), 6);
 }
-function renderAll(){ensureSelections(); syncColorBlindToggles(); renderReleveSelect(); renderMeta(); renderRows(); renderSummary(); renderSelectionControls(); renderGradientCharts(); renderScatter(); renderCompare();}
+function renderAll(){ensureSelections(); syncColorBlindToggles(); renderReleveSelect(); renderMeta(); renderRows(); renderSummary(); renderSelectionControls(); renderGradientCharts(); renderScatter(); renderCompare(); renderSyncPanel();}
 function renderReleveSelect(){const sel=document.getElementById("releveSelect"); sel.innerHTML=state.releves.map(r=>`<option value="${r.id}">${esc(r.name||"Sans nom")} · ${r.rows.length} taxons</option>`).join(""); sel.value=current().id;}
 const RELEVE_PALETTE=["#1f77b4","#d62728","#2ca02c","#9467bd","#ff7f0e","#17becf","#8c564b","#e377c2","#4c78a8","#b279a2","#59a14f","#f28e2b"];
 const RELEVE_PALETTE_CB=["#0072B2","#D55E00","#009E73","#CC79A7","#E69F00","#56B4E9","#F0E442","#000000","#7F3C8D","#11A579","#3969AC","#F2B701"];
@@ -350,6 +392,139 @@ function download(filename, text, mime="application/json"){const a=document.crea
 function rowsCsv(){const lines=[["releve_id","releve_nom","date","observateur","localisation","surface","taxon_id","nom_scientifique","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>r.rows.forEach(row=>{const t=byId.get(row.tid)||{v:[]}; lines.push([r.id,r.name,r.date,r.observer,r.location,r.area,row.tid,t.n,t.s,row.stratum,row.mode,row.cover,pct(row),...GRADIENTS.map((g,i)=>t.v[i])]);})); return lines.map(line=>line.map(v=>`"${(v??"").toString().replace(/"/g,'""')}"`).join(";")).join("\n");}
 
 
+function safeDate(s){try{return new Date(s).toLocaleString("fr-FR");}catch(e){return s||"—";}}
+function remoteJsonSnapshot(){const clone=JSON.parse(JSON.stringify(state)); clone._application="Application de visualisation des relevés botaniques"; clone._sync_exported_at=new Date().toISOString(); return clone;}
+function syncSetMessage(msg,cls="warn"){const el=document.getElementById("googleSyncStatus"); if(!el)return; el.className="syncStatus "+cls; el.innerHTML=msg;}
+function renderSyncPanel(){
+  const client=document.getElementById("googleClientId"); if(client) client.value=syncState.clientId||"";
+  const parts=[];
+  if(!syncState.clientId) parts.push("<strong>Non configuré.</strong> Renseigner le Client ID Google OAuth, puis l’enregistrer.");
+  else parts.push("<strong>Client ID enregistré.</strong>");
+  if(syncState.spreadsheetId) parts.push(`Google Sheet lié : <strong>${esc(syncState.sheetName||GOOGLE_SHEET_NAME)}</strong>.`);
+  else parts.push("Aucun Google Sheet encore lié.");
+  if(syncState.lastSyncAt) parts.push(`Dernière synchronisation : <strong>${esc(safeDate(syncState.lastSyncAt))}</strong>.`);
+  if(syncState.dirty) parts.push("<strong>Modifications locales non synchronisées.</strong>");
+  const cls=!syncState.clientId?"warn":(syncState.dirty?"warn":"ok");
+  syncSetMessage(parts.join(" "), cls);
+}
+function requireClientId(){
+  const input=document.getElementById("googleClientId");
+  const val=(input?.value||syncState.clientId||"").trim();
+  if(!val){alert("Renseigner d’abord le Client ID Google OAuth."); return null;}
+  syncState.clientId=val; saveSyncState(); return val;
+}
+function waitForGoogleIdentity(){return new Promise((resolve,reject)=>{let n=0; const timer=setInterval(()=>{if(window.google?.accounts?.oauth2){clearInterval(timer); resolve();} else if(++n>80){clearInterval(timer); reject(new Error("La bibliothèque Google Identity Services n’est pas chargée. Vérifier la connexion internet et l’URL HTTPS de l’application."));}},100);});}
+async function getGoogleAccessToken(forcePrompt=false){
+  const clientId=requireClientId(); if(!clientId) throw new Error("Client ID manquant.");
+  if(googleAccessToken && Date.now()<googleTokenExpiry-60000 && !forcePrompt) return googleAccessToken;
+  await waitForGoogleIdentity();
+  return await new Promise((resolve,reject)=>{
+    googleTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: GOOGLE_SCOPES,
+      prompt: forcePrompt ? "consent" : "",
+      callback: resp=>{
+        if(resp.error){reject(new Error(resp.error_description||resp.error)); return;}
+        googleAccessToken=resp.access_token; googleTokenExpiry=Date.now()+((resp.expires_in||3600)*1000); resolve(googleAccessToken);
+      }
+    });
+    googleTokenClient.requestAccessToken({prompt: forcePrompt ? "consent" : ""});
+  });
+}
+async function googleApiFetch(url,options={},retry=true){
+  const token=await getGoogleAccessToken(false);
+  const headers=Object.assign({"Authorization":"Bearer "+token}, options.headers||{});
+  if(options.body && !headers["Content-Type"]) headers["Content-Type"]="application/json";
+  const res=await fetch(url,Object.assign({},options,{headers}));
+  if(res.status===401 && retry){googleAccessToken=null; await getGoogleAccessToken(true); return googleApiFetch(url,options,false);}
+  if(!res.ok){const txt=await res.text().catch(()=>""); throw new Error(`${res.status} ${res.statusText} ${txt}`.trim());}
+  const ct=res.headers.get("content-type")||"";
+  return ct.includes("application/json") ? res.json() : res.text();
+}
+function driveQueryString(s){return `'${String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'")}'`;}
+async function findGoogleSheet(){
+  const q=`name = ${driveQueryString(GOOGLE_SHEET_NAME)} and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false`;
+  const url=`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&spaces=drive&fields=files(id,name,modifiedTime,webViewLink)&orderBy=modifiedTime%20desc&pageSize=10`;
+  const data=await googleApiFetch(url);
+  return (data.files||[])[0]||null;
+}
+async function createGoogleSheet(){
+  const body={properties:{title:GOOGLE_SHEET_NAME},sheets:["releves","lignes_releve","synthese","parametres","etat_application"].map(title=>({properties:{title}}))};
+  const data=await googleApiFetch("https://sheets.googleapis.com/v4/spreadsheets",{method:"POST",body:JSON.stringify(body)});
+  return {id:data.spreadsheetId,name:GOOGLE_SHEET_NAME,webViewLink:data.spreadsheetUrl};
+}
+async function ensureGoogleSheets(spreadsheetId){
+  const meta=await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`);
+  const have=new Set((meta.sheets||[]).map(s=>s.properties.title));
+  const requests=[];
+  ["releves","lignes_releve","synthese","parametres","etat_application"].forEach(title=>{if(!have.has(title))requests.push({addSheet:{properties:{title}}});});
+  if(requests.length) await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,{method:"POST",body:JSON.stringify({requests})});
+}
+async function ensureGoogleSheetLinked(createIfMissing=true){
+  await getGoogleAccessToken(false);
+  syncSetMessage("Recherche du Google Sheet personnel…","warn");
+  let file=null;
+  if(syncState.spreadsheetId){file={id:syncState.spreadsheetId,name:syncState.sheetName||GOOGLE_SHEET_NAME,webViewLink:syncState.sheetUrl};}
+  else file=await findGoogleSheet();
+  if(!file && createIfMissing){syncSetMessage("Création du Google Sheet personnel…","warn"); file=await createGoogleSheet();}
+  if(!file) throw new Error("Aucun Google Sheet trouvé.");
+  syncState.spreadsheetId=file.id; syncState.sheetName=file.name||GOOGLE_SHEET_NAME; syncState.sheetUrl=file.webViewLink||`https://docs.google.com/spreadsheets/d/${file.id}`; saveSyncState();
+  await ensureGoogleSheets(file.id);
+  renderSyncPanel();
+  return file.id;
+}
+function sheetRowsReleves(){return [["releve_id","nom","date","observateur","localisation","surface","notes","nb_lignes"]].concat(state.releves.map(r=>[r.id,r.name||"",r.date||"",r.observer||"",r.location||"",r.area||"",r.notes||"",(r.rows||[]).length]));}
+function sheetRowsLignes(){const rows=[["ligne_id","releve_id","releve_nom","taxon_id","taxon","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule","sol_nu",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>(r.rows||[]).forEach((row,i)=>{const t=byId.get(row.tid)||{n:"",s:"",v:[]}; rows.push([`${r.id}:${i+1}`,r.id,r.name||"",row.tid??"",t.n||"",t.s||"",row.stratum||"",row.mode||"",row.cover??"",pct(row),row.tid===-1?"oui":"",...GRADIENTS.map((g,j)=>t.v?.[j]??"")]);})); return rows;}
+function sheetRowsSynthese(){const rows=[["releve_id","releve_nom","strate","gradient","code","moyenne_simple","moyenne_ponderee","ecart_type_simple","ecart_type_pondere","nb_taxons_utilises","nb_taxons_sans_indice","recouvrement_utilise"]]; state.releves.forEach(r=>stats(r,"Toutes strates").forEach(x=>rows.push([r.id,r.name||"","Toutes strates",x.g.label,x.g.short,x.mean??"",x.wmean??"",x.sd??"",x.wsd??"",x.n,x.missing,x.sw??""]))); return rows;}
+function sheetRowsParametres(){return [["cle","valeur"],["version_application","v8_google_drive"],["source_indices","Baseflor simplifiée"],["conversion_i","0.01"],["conversion_r","0.1"],["conversion_+","0.5"],["conversion_1","2.5"],["conversion_2","15"],["conversion_3","37.5"],["conversion_4","62.5"],["conversion_5","87.5"],["exporte_le",new Date().toISOString()]];}
+function sheetRowsEtat(){const json=JSON.stringify(remoteJsonSnapshot()); const size=35000; const chunks=[]; for(let i=0;i<json.length;i+=size)chunks.push(json.slice(i,i+size)); return [["chunk_index","chunk_count","json_chunk"]].concat(chunks.map((c,i)=>[i+1,chunks.length,c]));}
+async function pushToGoogleSheet(){
+  const id=await ensureGoogleSheetLinked(true);
+  syncSetMessage("Envoi des relevés vers Google Sheet…","warn");
+  const ranges=["releves","lignes_releve","synthese","parametres","etat_application"];
+  await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchClear`,{method:"POST",body:JSON.stringify({ranges})});
+  const data=[
+    {range:"releves!A1",values:sheetRowsReleves()},
+    {range:"lignes_releve!A1",values:sheetRowsLignes()},
+    {range:"synthese!A1",values:sheetRowsSynthese()},
+    {range:"parametres!A1",values:sheetRowsParametres()},
+    {range:"etat_application!A1",values:sheetRowsEtat()}
+  ];
+  await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchUpdate`,{method:"POST",body:JSON.stringify({valueInputOption:"RAW",data})});
+  syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderSyncPanel(); alert("Synchronisation vers Google Sheet terminée.");
+}
+async function pullFromGoogleSheet(){
+  const id=await ensureGoogleSheetLinked(true);
+  syncSetMessage("Récupération des relevés depuis Google Sheet…","warn");
+  const data=await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/etat_application!A2:C`);
+  const rows=data.values||[];
+  if(!rows.length) throw new Error("L’onglet etat_application ne contient pas encore de sauvegarde JSON.");
+  rows.sort((a,b)=>(parseInt(a[0]||"0",10)||0)-(parseInt(b[0]||"0",10)||0));
+  const json=rows.map(r=>r[2]||"").join("");
+  const remote=JSON.parse(json);
+  if(!remote.releves || !Array.isArray(remote.releves)) throw new Error("Le contenu distant n’est pas un état valide de l’application.");
+  if(!confirm("Remplacer les relevés locaux par ceux du Google Sheet ?")) {renderSyncPanel(); return;}
+  suppressDirty=true;
+  state=remote;
+  if(!state.selectedId && state.releves[0]) state.selectedId=state.releves[0].id;
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  suppressDirty=false;
+  syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderAll(); alert("Récupération depuis Google Sheet terminée.");
+}
+async function handleGoogleAction(action){
+  try{
+    if(location.protocol!=="https:" && location.hostname!=="localhost" && location.hostname!=="127.0.0.1") throw new Error("Google OAuth nécessite une URL HTTPS, sauf en test local.");
+    if(action==="saveClient"){const id=requireClientId(); if(id){googleAccessToken=null; googleTokenClient=null; renderSyncPanel(); alert("Client ID enregistré.");}}
+    if(action==="signin"){await getGoogleAccessToken(true); syncState.clientId=requireClientId(); saveSyncState(); renderSyncPanel(); alert("Connexion Google établie pour cette session.");}
+    if(action==="ensure"){await ensureGoogleSheetLinked(true); alert("Google Sheet prêt.");}
+    if(action==="push") await pushToGoogleSheet();
+    if(action==="pull") await pullFromGoogleSheet();
+    if(action==="open"){if(!syncState.spreadsheetId) await ensureGoogleSheetLinked(true); window.open(syncState.sheetUrl||`https://docs.google.com/spreadsheets/d/${syncState.spreadsheetId}`,"_blank","noopener");}
+    if(action==="forget"){if(confirm("Oublier la liaison locale au Google Sheet ? Les données du Google Sheet ne seront pas supprimées.")){syncState={clientId:syncState.clientId||""}; saveSyncState(); renderSyncPanel();}}
+  }catch(err){console.error(err); syncSetMessage("Erreur : "+esc(err.message||String(err)),"err"); alert("Action Google impossible : "+(err.message||err));}
+}
+
+
 function imageFromSvg(svg){return new Promise((resolve,reject)=>{const clone=svg.cloneNode(true); clone.setAttribute("xmlns","http://www.w3.org/2000/svg"); const xml=new XMLSerializer().serializeToString(clone); const blob=new Blob([xml],{type:"image/svg+xml;charset=utf-8"}); const url=URL.createObjectURL(blob); const img=new Image(); img.onload=()=>{URL.revokeObjectURL(url); resolve(img);}; img.onerror=e=>{URL.revokeObjectURL(url); reject(e);}; img.src=url;});}
 async function exportVisibleSvgsPng(selector,filename){const svgs=[...document.querySelectorAll(selector)].filter(svg=>svg && svg.tagName.toLowerCase()==="svg"); if(!svgs.length){alert("Aucun graphique exportable dans l’affichage courant.");return;} const meta=svgs.map(svg=>{const vb=(svg.getAttribute("viewBox")||`0 0 ${svg.clientWidth||800} ${svg.clientHeight||500}`).trim().split(/\s+/).map(Number); return {svg,w:vb[2]||800,h:vb[3]||500};}); const scale=2, pad=28, gap=26; const W=Math.max(...meta.map(o=>o.w))+pad*2; const H=meta.reduce((s,o)=>s+o.h,0)+gap*(meta.length-1)+pad*2; const canvas=document.createElement("canvas"); canvas.width=Math.ceil(W*scale); canvas.height=Math.ceil(H*scale); const ctx=canvas.getContext("2d"); ctx.scale(scale,scale); ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,W,H); let y=pad; for(const item of meta){const img=await imageFromSvg(item.svg); ctx.drawImage(img,pad,y,item.w,item.h); y+=item.h+gap;} canvas.toBlob(blob=>{if(!blob){alert("Export PNG impossible.");return;} const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);},"image/png");}
 
@@ -375,6 +550,14 @@ function bind(){
  exportJson.addEventListener("click",()=>download(`releves_botaniques_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(state,null,2)));
  exportCsv.addEventListener("click",()=>download(`releves_botaniques_lignes_${new Date().toISOString().slice(0,10)}.csv`, rowsCsv(), "text/csv;charset=utf-8"));
  importJson.addEventListener("change",async e=>{const file=e.target.files[0]; if(!file)return; try{const txt=await file.text(); const obj=JSON.parse(txt); if(!obj.releves||!Array.isArray(obj.releves))throw new Error("Format non reconnu"); if(confirm("Remplacer les relevés stockés par le contenu du fichier JSON ?")){state=obj; if(!state.selectedId && state.releves[0])state.selectedId=state.releves[0].id; save(); renderAll();}}catch(err){alert("Import impossible : "+err.message)}});
+ if(window.saveGoogleClientId)saveGoogleClientId.addEventListener("click",()=>handleGoogleAction("saveClient"));
+ if(window.googleSignIn)googleSignIn.addEventListener("click",()=>handleGoogleAction("signin"));
+ if(window.googleEnsureSheet)googleEnsureSheet.addEventListener("click",()=>handleGoogleAction("ensure"));
+ if(window.googlePush)googlePush.addEventListener("click",()=>handleGoogleAction("push"));
+ if(window.googlePull)googlePull.addEventListener("click",()=>handleGoogleAction("pull"));
+ if(window.googleOpenSheet)googleOpenSheet.addEventListener("click",()=>handleGoogleAction("open"));
+ if(window.googleForgetSheet)googleForgetSheet.addEventListener("click",()=>handleGoogleAction("forget"));
+
 }
 initStatic(); bind(); initTooltip(); renderAll();
 
