@@ -4,6 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Application de visualisation des relevés botaniques</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#2f6b3e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Relevés botaniques">
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root{
@@ -11,6 +19,11 @@
       --brand:#2f6b3e; --brand2:#e5f0df; --accent:#d59b27; --danger:#9d2f2f;
       --shadow:0 14px 35px rgba(25,45,25,.08); --radius:18px;
     }
+
+    .appTitle{display:flex;align-items:center;gap:14px}
+    .appLogo{width:56px;height:56px;border-radius:15px;box-shadow:0 8px 22px rgba(25,45,25,.15);flex:0 0 auto}
+    .installStatus{margin-top:10px}
+    .installBadge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 10px;background:#edf6e8;color:#25512f;font-weight:750}
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.45}
     header{padding:26px 28px 18px;background:linear-gradient(135deg,#eef6e9,#f9faf4 55%,#fff4d7);border-bottom:1px solid var(--line)}
@@ -78,8 +91,13 @@
 </head>
 <body>
 <header>
-  <h1>Application de visualisation des relevés botaniques</h1>
-  <p>Saisie des relevés phytosociologiques et la visualisation de leurs indices d'Ellenberg sur gradients et écogrammes. <strong class="betaBadge">version bêta</strong></p>
+  <div class="appTitle">
+    <img class="appLogo" src="./icons/icon.svg" alt="" aria-hidden="true">
+    <div>
+      <h1>Application de visualisation des relevés botaniques</h1>
+      <p>Saisie des relevés phytosociologiques et la visualisation de leurs indices d'Ellenberg sur gradients et écogrammes. <strong class="betaBadge">version bêta</strong></p>
+    </div>
+  </div>
 </header>
 <nav class="tabs noPrint">
   <button class="tab active" data-view="entry">Saisie du relevé</button>
@@ -187,6 +205,12 @@
           <button class="ghost" id="googleForgetSheet">Oublier la liaison</button>
         </div>
         <p class="small muted">Prévoir une sauvegarde JSON régulière : Google Sheet facilite le multi-appareils, mais l’export JSON reste la sauvegarde scientifique la plus complète.</p>
+      </div>
+      <div class="card">
+        <h2>Installation smartphone</h2>
+        <p class="muted">L’application peut être ajoutée à l’écran d’accueil du smartphone depuis son URL GitHub Pages. Sur Android, le bouton ci-dessous déclenche l’installation si le navigateur la propose. Sur iPhone, utiliser Safari puis Partager → Ajouter à l’écran d’accueil.</p>
+        <div class="row noPrint"><button id="installApp" class="secondary">Installer l’application</button></div>
+        <div id="installStatus" class="notice small installStatus">Statut : application web consultable depuis le navigateur. L’installation dépend du navigateur et du système.</div>
       </div>
       <div class="card"><h2>Export des relevés</h2><p class="muted">Export JSON autonome contenant les métadonnées et les lignes floristiques. Les valeurs Baseflor restent embarquées dans l’application.</p><div class="row"><button id="exportJson">Télécharger JSON</button><button class="secondary" id="exportCsv">Télécharger CSV lignes</button></div></div>
       <div class="card"><h2>Import de relevés</h2><p class="muted">Import d’un export JSON généré par cette application. L’import remplace les relevés actuellement stockés après confirmation.</p><input type="file" id="importJson" accept="application/json,.json"></div>
@@ -547,6 +571,7 @@ function bind(){
  document.addEventListener("change",e=>{if(e.target.classList?.contains("colorBlindToggle")){state.colorBlind=!!e.target.checked; syncColorBlindToggles(); save(); renderAll();}});
  if(window.exportGradientsPng)exportGradientsPng.addEventListener("click",()=>exportVisibleSvgsPng("#gradientCharts svg",`gradients_releves_${new Date().toISOString().slice(0,10)}.png`));
  if(window.exportScatterPng)exportScatterPng.addEventListener("click",()=>exportVisibleSvgsPng("#scatterSvg svg",`ecogramme_releves_${new Date().toISOString().slice(0,10)}.png`));
+ if(window.installApp)installApp.addEventListener("click",installPwa);
  exportJson.addEventListener("click",()=>download(`releves_botaniques_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(state,null,2)));
  exportCsv.addEventListener("click",()=>download(`releves_botaniques_lignes_${new Date().toISOString().slice(0,10)}.csv`, rowsCsv(), "text/csv;charset=utf-8"));
  importJson.addEventListener("change",async e=>{const file=e.target.files[0]; if(!file)return; try{const txt=await file.text(); const obj=JSON.parse(txt); if(!obj.releves||!Array.isArray(obj.releves))throw new Error("Format non reconnu"); if(confirm("Remplacer les relevés stockés par le contenu du fichier JSON ?")){state=obj; if(!state.selectedId && state.releves[0])state.selectedId=state.releves[0].id; save(); renderAll();}}catch(err){alert("Import impossible : "+err.message)}});
@@ -559,7 +584,55 @@ function bind(){
  if(window.googleForgetSheet)googleForgetSheet.addEventListener("click",()=>handleGoogleAction("forget"));
 
 }
-initStatic(); bind(); initTooltip(); renderAll();
+
+let deferredInstallPrompt=null;
+function updateInstallStatus(message,kind="info"){
+  const el=document.getElementById("installStatus");
+  if(!el)return;
+  const prefix=kind==="ok"?"Prêt":kind==="warn"?"À faire":"Statut";
+  el.innerHTML=`<span class="installBadge">${prefix}</span> ${esc(message)}`;
+}
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  updateInstallStatus("installation disponible depuis ce navigateur. Cliquer sur Installer l’application.","ok");
+});
+window.addEventListener("appinstalled",()=>{
+  deferredInstallPrompt=null;
+  updateInstallStatus("application installée sur cet appareil.","ok");
+});
+async function installPwa(){
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    const choice=await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    updateInstallStatus(choice && choice.outcome==="accepted" ? "installation acceptée." : "installation annulée ou reportée.", choice && choice.outcome==="accepted" ? "ok" : "warn");
+    return;
+  }
+  const ua=navigator.userAgent||"";
+  const isIOS=/iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+  if(isIOS){
+    alert("Sur iPhone/iPad : ouvrir l’application dans Safari, toucher le bouton Partager, puis choisir Ajouter à l’écran d’accueil.");
+    updateInstallStatus("sur iPhone/iPad, l’installation se fait depuis Safari : Partager → Ajouter à l’écran d’accueil.","warn");
+  }else{
+    alert("Si le bouton d’installation n’apparaît pas, utiliser le menu du navigateur : Ajouter à l’écran d’accueil ou Installer l’application.");
+    updateInstallStatus("installation non proposée automatiquement ; utiliser le menu du navigateur.","warn");
+  }
+}
+function registerPwaServiceWorker(){
+  if(!("serviceWorker" in navigator))return;
+  if(location.protocol!=="https:" && location.hostname!=="localhost" && location.hostname!=="127.0.0.1")return;
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./service-worker.js").then(()=>{
+      updateInstallStatus("mode application activé ; les ressources principales peuvent être mises en cache.","ok");
+    }).catch(err=>{
+      console.warn("Service worker non enregistré",err);
+      updateInstallStatus("service worker non enregistré ; l’application reste utilisable dans le navigateur.","warn");
+    });
+  });
+}
+
+initStatic(); bind(); initTooltip(); renderAll(); registerPwaServiceWorker();
 
 </script>
 </body>
