@@ -2,11 +2,13 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light">
+  <meta name="supported-color-schemes" content="light">
   <title>Application de visualisation des relevés botaniques</title>
+  <!-- v12 : retour base stable v9, thème clair forcé, Google Sheet visible, bouton purge cache -->
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#2f6b3e">
+  <meta name="theme-color" content="#f7f8f5">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Relevés botaniques">
@@ -15,14 +17,24 @@
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
-    /* v11 — retour à une ergonomie sobre, thème clair imposé, synchronisation Google robuste */
     :root{
       --bg:#f7f8f5; --panel:#ffffff; --ink:#172015; --muted:#647166; --line:#dfe6dc;
       --brand:#2f6b3e; --brand2:#e5f0df; --accent:#d59b27; --danger:#9d2f2f;
       --shadow:0 14px 35px rgba(25,45,25,.08); --radius:18px;
     }
 
-    html{color-scheme:light;background:var(--bg);-webkit-text-size-adjust:100%;text-size-adjust:100%}
+    html, body { color-scheme: light !important; background:#f7f8f5 !important; }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#f7f8f5 !important; --panel:#ffffff !important; --ink:#172015 !important; --muted:#647166 !important; --line:#dfe6dc !important;
+        --brand:#2f6b3e !important; --brand2:#e5f0df !important; --accent:#d59b27 !important; --danger:#9d2f2f !important;
+        --shadow:0 14px 35px rgba(25,45,25,.08) !important; --radius:18px !important;
+      }
+      body, header, main, section, .card, .gradientCard, .metric, .miniItem, .selectorPanel, .legendHelp, .syncStatus, .suggestions, input, select, textarea, button.secondary, .tab, .checkItem, table, th, td {
+        color-scheme: light !important;
+      }
+    }
+
     .appTitle{display:flex;align-items:center;gap:14px}
     .appLogo{width:56px;height:56px;border-radius:15px;box-shadow:0 8px 22px rgba(25,45,25,.15);flex:0 0 auto}
     .installStatus{margin-top:10px}
@@ -37,7 +49,7 @@
     button,.button,select,input,textarea{font:inherit;border:1px solid var(--line);border-radius:12px;background:white;color:var(--ink)}
     button,.button{cursor:pointer;padding:10px 13px;background:var(--brand);color:#fff;border-color:var(--brand);font-weight:650}
     button.secondary{background:#fff;color:var(--brand);border-color:#b9cfb7}.ghost{background:transparent;color:var(--brand);border-color:transparent}.danger{background:var(--danger);border-color:var(--danger)}
-    input,select,textarea{padding:10px 12px;min-width:0} textarea{width:100%;min-height:70px;resize:vertical}
+    input,select,textarea{padding:10px 12px;min-width:0;font-size:16px} textarea{width:100%;min-height:70px;resize:vertical}
     .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 24px 0}.tab{background:#fff;color:var(--muted);border-color:var(--line)}.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
     main{padding:22px 24px 45px;max-width:1480px;margin:0 auto}.view{display:none}.view.active{display:block}
     .grid{display:grid;grid-template-columns:360px 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.full{grid-column:1/-1}
@@ -56,13 +68,9 @@
     @media(max-width:1040px){.grid,.split{grid-template-columns:1fr}.gradientGrid{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.grid3,.grid2{grid-template-columns:1fr}}
     @media(max-width:760px){
       :root{--radius:14px}
-      body{font-size:16px}
-      input,select,textarea{font-size:16px}
-      button,.button{font-size:15px;touch-action:manipulation}
-      header{padding:14px 12px 12px}
-      .appLogo{width:44px;height:44px;border-radius:12px}
-      .appTitle{gap:10px;align-items:flex-start}
-      h1{font-size:1.26rem;line-height:1.15}
+      body{font-size:15px}
+      header{padding:18px 14px 14px}
+      h1{font-size:1.38rem;line-height:1.15}
       header p{font-size:.92rem;line-height:1.35}
       .betaBadge{display:block;margin:.35rem 0 0}
       .tabs{position:sticky;top:0;z-index:50;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;padding:8px 10px;background:rgba(247,248,245,.97);border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch}
@@ -88,11 +96,11 @@
       .legend,.chartLegend{gap:7px;font-size:.78rem}.legendHelp{padding:8px}.key{align-items:center}
       .gradientGrid{grid-template-columns:1fr;gap:10px}.gradientCard{padding:10px}.gradientHead{display:grid;grid-template-columns:1fr;gap:3px}
       .svgBox{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}.svgBox svg{display:block;width:100%;height:auto}
-      .gradientCard .svgBox svg{min-width:680px}#scatterSvg svg{min-width:820px}
+      .gradientCard .svgBox svg{min-width:720px}#scatterSvg svg{min-width:920px}
       .tableWrap{max-height:440px}.tableWrap table{min-width:720px}
       .miniList{gap:7px}.miniItem{padding:8px}.chartTooltip{max-width:min(310px,calc(100vw - 18px));font-size:.82rem}
     }
-    @media(max-width:420px){.summary{grid-template-columns:1fr}.selectorActions{grid-template-columns:1fr}.tab{font-size:.86rem}.gradientCard .svgBox svg{min-width:650px}#scatterSvg svg{min-width:790px}}
+    @media(max-width:420px){.summary{grid-template-columns:1fr}.selectorActions{grid-template-columns:1fr}.tab{font-size:.86rem}.gradientCard .svgBox svg{min-width:690px}#scatterSvg svg{min-width:880px}}
     @media print{header,.tabs,.noPrint,button{display:none!important}main{padding:0}.card{box-shadow:none;break-inside:avoid}.view{display:block!important}.tableWrap{max-height:none;overflow:visible}}
   </style>
 </head>
@@ -207,16 +215,16 @@
           <button id="googleSignIn">Se connecter à Google</button>
           <button class="secondary" id="googleEnsureSheet">Créer / retrouver le Google Sheet</button>
           <button class="secondary" id="googlePush">Envoyer vers Google Sheet</button>
-          <button class="secondary" id="googlePull">Récupérer depuis Google Sheet</button>
+          <button class="secondary" id="googlePull">Charger les relevés depuis Google Sheet</button>
           <button class="ghost" id="googleOpenSheet">Ouvrir le Google Sheet</button>
           <button class="ghost" id="googleForgetSheet">Oublier la liaison</button>
         </div>
-        <p class="small muted">Prévoir une sauvegarde JSON régulière : Google Sheet facilite le multi-appareils, mais l’export JSON reste la sauvegarde scientifique la plus complète.</p>
+        <p class="small muted"><strong>Chargement multi-appareils :</strong> utiliser “Charger les relevés depuis Google Sheet” pour récupérer sur ce téléphone les relevés déjà enregistrés depuis l’ordinateur. Prévoir aussi une sauvegarde JSON régulière.</p>
       </div>
       <div class="card">
         <h2>Installation smartphone</h2>
         <p class="muted">L’application peut être ajoutée à l’écran d’accueil du smartphone depuis son URL GitHub Pages. Sur Android, le bouton ci-dessous déclenche l’installation si le navigateur la propose. Sur iPhone, utiliser Safari puis Partager → Ajouter à l’écran d’accueil.</p>
-        <div class="row noPrint"><button id="installApp" class="secondary">Installer l’application</button></div>
+        <div class="row noPrint"><button id="installApp" class="secondary">Installer l’application</button><button id="resetAppCache" class="ghost">Réinitialiser le cache de l’application</button></div>
         <div id="installStatus" class="notice small installStatus">Statut : application web consultable depuis le navigateur. L’installation dépend du navigateur et du système.</div>
       </div>
       <div class="card"><h2>Export des relevés</h2><p class="muted">Export JSON autonome contenant les métadonnées et les lignes floristiques. Les valeurs Baseflor restent embarquées dans l’application.</p><div class="row"><button id="exportJson">Télécharger JSON</button><button class="secondary" id="exportCsv">Télécharger CSV lignes</button></div></div>
@@ -507,7 +515,7 @@ async function ensureGoogleSheetLinked(createIfMissing=true){
 function sheetRowsReleves(){return [["releve_id","nom","date","observateur","localisation","surface","notes","nb_lignes"]].concat(state.releves.map(r=>[r.id,r.name||"",r.date||"",r.observer||"",r.location||"",r.area||"",r.notes||"",(r.rows||[]).length]));}
 function sheetRowsLignes(){const rows=[["ligne_id","releve_id","releve_nom","taxon_id","taxon","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule","sol_nu",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>(r.rows||[]).forEach((row,i)=>{const t=byId.get(row.tid)||{n:"",s:"",v:[]}; rows.push([`${r.id}:${i+1}`,r.id,r.name||"",row.tid??"",t.n||"",t.s||"",row.stratum||"",row.mode||"",row.cover??"",pct(row),row.tid===-1?"oui":"",...GRADIENTS.map((g,j)=>t.v?.[j]??"")]);})); return rows;}
 function sheetRowsSynthese(){const rows=[["releve_id","releve_nom","strate","gradient","code","moyenne_simple","moyenne_ponderee","ecart_type_simple","ecart_type_pondere","nb_taxons_utilises","nb_taxons_sans_indice","recouvrement_utilise"]]; state.releves.forEach(r=>stats(r,"Toutes strates").forEach(x=>rows.push([r.id,r.name||"","Toutes strates",x.g.label,x.g.short,x.mean??"",x.wmean??"",x.sd??"",x.wsd??"",x.n,x.missing,x.sw??""]))); return rows;}
-function sheetRowsParametres(){return [["cle","valeur"],["version_application","v11_mobile_sobre"],["source_indices","Baseflor simplifiée"],["conversion_i","0.01"],["conversion_r","0.1"],["conversion_+","0.5"],["conversion_1","2.5"],["conversion_2","15"],["conversion_3","37.5"],["conversion_4","62.5"],["conversion_5","87.5"],["exporte_le",new Date().toISOString()]];}
+function sheetRowsParametres(){return [["cle","valeur"],["version_application","v12_stable_light"],["source_indices","Baseflor simplifiée"],["conversion_i","0.01"],["conversion_r","0.1"],["conversion_+","0.5"],["conversion_1","2.5"],["conversion_2","15"],["conversion_3","37.5"],["conversion_4","62.5"],["conversion_5","87.5"],["exporte_le",new Date().toISOString()]];}
 function sheetRowsEtat(){const json=JSON.stringify(remoteJsonSnapshot()); const size=35000; const chunks=[]; for(let i=0;i<json.length;i+=size)chunks.push(json.slice(i,i+size)); return [["chunk_index","chunk_count","json_chunk"]].concat(chunks.map((c,i)=>[i+1,chunks.length,c]));}
 async function pushToGoogleSheet(){
   const id=await ensureGoogleSheetLinked(true);
@@ -524,71 +532,23 @@ async function pushToGoogleSheet(){
   await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchUpdate`,{method:"POST",body:JSON.stringify({valueInputOption:"RAW",data})});
   syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderSyncPanel(); alert("Synchronisation vers Google Sheet terminée.");
 }
-
-async function pullStateFromGoogleTables(id){
-  const relData = await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/releves!A2:H`);
-  const lineData = await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/lignes_releve!A2:K`);
-  const relRows = relData.values || [];
-  if(!relRows.length) throw new Error("Aucun relevé exploitable dans les onglets tabulaires du Google Sheet.");
-  const rels = relRows.map(r=>({
-    id: String(r[0]||uid()),
-    name: r[1]||"Sans nom",
-    date: r[2]||"",
-    observer: r[3]||"",
-    location: r[4]||"",
-    area: r[5]||"",
-    notes: r[6]||"",
-    rows: []
-  }));
-  const byRel = new Map(rels.map(r=>[r.id,r]));
-  (lineData.values||[]).forEach(l=>{
-    const rid = String(l[1]||"");
-    const rel = byRel.get(rid);
-    if(!rel) return;
-    const tidRaw = (l[3] ?? "").toString().trim();
-    const tid = tidRaw === "" ? null : Number(tidRaw);
-    const mode = (l[7]||"bb").toString().trim() || "bb";
-    let cover = l[8] ?? "";
-    if(mode === "pct"){
-      const n = parseFloat(String(cover).replace(",","."));
-      cover = Number.isFinite(n) ? n : 0;
-    } else {
-      cover = String(cover || "i");
-    }
-    if(tid === null || (!byId.has(tid) && tid !== -1)) return;
-    rel.rows.push({tid, stratum: l[6]||"Herbacée", mode, cover});
-  });
-  return {selectedId: rels[0]?.id, releves: rels, colorBlind: !!state.colorBlind, gradientSelectedIds: rels[0]?[rels[0].id]:[], scatterSelectedIds: rels[0]?[rels[0].id]:[]};
-}
 async function pullFromGoogleSheet(){
   const id=await ensureGoogleSheetLinked(true);
   syncSetMessage("Récupération des relevés depuis Google Sheet…","warn");
-  let remote=null;
-  let mode="etat_application";
-  try{
-    const data=await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/etat_application!A2:C`);
-    const rows=data.values||[];
-    if(!rows.length) throw new Error("L’onglet etat_application ne contient pas encore de sauvegarde JSON.");
-    rows.sort((a,b)=>(parseInt(a[0]||"0",10)||0)-(parseInt(b[0]||"0",10)||0));
-    const json=rows.map(r=>r[2]||"").join("");
-    remote=JSON.parse(json);
-    if(!remote.releves || !Array.isArray(remote.releves)) throw new Error("Le contenu distant n’est pas un état valide de l’application.");
-  }catch(jsonErr){
-    console.warn("Restauration JSON impossible, reconstruction depuis les onglets tabulaires.", jsonErr);
-    mode="onglets tabulaires";
-    remote=await pullStateFromGoogleTables(id);
-  }
+  const data=await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/etat_application!A2:C`);
+  const rows=data.values||[];
+  if(!rows.length) throw new Error("L’onglet etat_application ne contient pas encore de sauvegarde JSON.");
+  rows.sort((a,b)=>(parseInt(a[0]||"0",10)||0)-(parseInt(b[0]||"0",10)||0));
+  const json=rows.map(r=>r[2]||"").join("");
+  const remote=JSON.parse(json);
   if(!remote.releves || !Array.isArray(remote.releves)) throw new Error("Le contenu distant n’est pas un état valide de l’application.");
-  remote.releves.forEach(r=>{ if(!Array.isArray(r.rows)) r.rows=[]; });
-  if(!remote.releves.length) throw new Error("Le Google Sheet ne contient aucun relevé.");
-  if(!remote.selectedId || !remote.releves.some(r=>r.id===remote.selectedId)) remote.selectedId=remote.releves[0].id;
-  if(!confirm(`Remplacer les relevés locaux par ceux du Google Sheet ?\nSource utilisée : ${mode}.`)) {renderSyncPanel(); return;}
+  if(!confirm("Remplacer les relevés locaux par ceux du Google Sheet ?")) {renderSyncPanel(); return;}
   suppressDirty=true;
   state=remote;
   if(!state.selectedId && state.releves[0]) state.selectedId=state.releves[0].id;
   localStorage.setItem(STORE_KEY, JSON.stringify(state));
   suppressDirty=false;
-  syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderAll(); alert(`Récupération depuis Google Sheet terminée. ${state.releves.length} relevé(s) chargé(s).`);
+  syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderAll(); alert("Récupération depuis Google Sheet terminée.");
 }
 async function handleGoogleAction(action){
   try{
@@ -627,6 +587,7 @@ function bind(){
  if(window.exportGradientsPng)exportGradientsPng.addEventListener("click",()=>exportVisibleSvgsPng("#gradientCharts svg",`gradients_releves_${new Date().toISOString().slice(0,10)}.png`));
  if(window.exportScatterPng)exportScatterPng.addEventListener("click",()=>exportVisibleSvgsPng("#scatterSvg svg",`ecogramme_releves_${new Date().toISOString().slice(0,10)}.png`));
  if(window.installApp)installApp.addEventListener("click",installPwa);
+ if(window.resetAppCache)resetAppCache.addEventListener("click",resetPwaCache);
  exportJson.addEventListener("click",()=>download(`releves_botaniques_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(state,null,2)));
  exportCsv.addEventListener("click",()=>download(`releves_botaniques_lignes_${new Date().toISOString().slice(0,10)}.csv`, rowsCsv(), "text/csv;charset=utf-8"));
  importJson.addEventListener("change",async e=>{const file=e.target.files[0]; if(!file)return; try{const txt=await file.text(); const obj=JSON.parse(txt); if(!obj.releves||!Array.isArray(obj.releves))throw new Error("Format non reconnu"); if(confirm("Remplacer les relevés stockés par le contenu du fichier JSON ?")){state=obj; if(!state.selectedId && state.releves[0])state.selectedId=state.releves[0].id; save(); renderAll();}}catch(err){alert("Import impossible : "+err.message)}});
@@ -674,6 +635,24 @@ async function installPwa(){
     updateInstallStatus("installation non proposée automatiquement ; utiliser le menu du navigateur.","warn");
   }
 }
+async function resetPwaCache(){
+  if(!confirm("Réinitialiser le cache local de l’application ? Les relevés locaux et le Client ID sont conservés ; seules les ressources PWA en cache sont effacées.")) return;
+  try{
+    if("serviceWorker" in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+    if(window.caches){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+    alert("Cache réinitialisé. La page va se recharger depuis GitHub Pages.");
+    location.reload();
+  }catch(err){
+    alert("Réinitialisation partielle ou impossible : "+(err.message||err));
+  }
+}
+
 function registerPwaServiceWorker(){
   if(!("serviceWorker" in navigator))return;
   if(location.protocol!=="https:" && location.hostname!=="localhost" && location.hostname!=="127.0.0.1")return;

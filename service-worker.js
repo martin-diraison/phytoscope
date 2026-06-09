@@ -1,4 +1,4 @@
-const CACHE_NAME = "releves-botaniques-pwa-v11-mobile-sobre-20260609";
+const CACHE_NAME = "releves-botaniques-pwa-v12-stable-light-20260610";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -22,7 +22,7 @@ self.addEventListener("fetch", event => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   if (req.mode === "navigate") {
-    event.respondWith(fetch(req).then(res => {
+    event.respondWith(fetch(req, {cache:"no-store"}).then(res => {
       const copy = res.clone();
       caches.open(CACHE_NAME).then(cache => cache.put("./index.html", copy));
       return res;
