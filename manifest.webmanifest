@@ -1,14 +1,14 @@
 {
   "name": "Application de visualisation des relevés botaniques",
   "short_name": "Relevés botaniques",
-  "description": "Saisie des relevés phytosociologiques et la visualisation de leurs indices d'Ellenberg sur gradients et écogrammes.",
+  "description": "Saisie des relevés phytosociologiques, synchronisation Google Sheet et visualisation des indices d’Ellenberg sur gradients et écogrammes.",
   "lang": "fr-FR",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#f2f6ef",
-  "theme_color": "#f2f6ef",
+  "theme_color": "#eef6e9",
   "icons": [
     {
       "src": "icons/icon-192.png",

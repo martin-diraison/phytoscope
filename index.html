@@ -6,7 +6,7 @@
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
   <title>Application de visualisation des relevés botaniques</title>
-  <!-- v13 : synchronisation Google Sheet non destructive, filtres indices, ergonomie mobile et charte modernisée -->
+  <!-- v14 : champ Site, gradients repliables, export comparaison, choix axes interactif, ergonomie mobile affinée -->
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#f2f6ef">
   <meta name="mobile-web-app-capable" content="yes">
@@ -122,6 +122,12 @@
     }
     @media(max-width:420px){.summary{grid-template-columns:1fr}.selectorActions{grid-template-columns:1fr}.tab{font-size:.86rem}.gradientCard .svgBox svg{min-width:690px}#scatterSvg svg{min-width:880px}}
     @media print{header,.tabs,.noPrint,button{display:none!important}main{padding:0}.card{box-shadow:none;break-inside:avoid}.view{display:block!important}.tableWrap{max-height:none;overflow:visible}}
+  
+    /* v14 — ergonomie mobile, graphiques à colonne unique et panneaux compacts */
+    .graphWorkspace{padding:14px 15px 18px}.compactToolbar{row-gap:7px}.compactSwitch{padding:5px 8px;font-size:.78rem;line-height:1}.compactSwitch input{width:13px;height:13px}.slimPanel{padding:8px 9px;margin:6px 0}.slimLegend{padding:6px 8px;margin:6px 0}.panelSearch{width:100%;margin:2px 0 8px;padding:8px 10px;border-radius:10px;background:#fff}.selectableReleves{max-height:180px;overflow:auto;align-content:flex-start}.selectableReleves .checkItem{padding:4px 7px;border-radius:12px}.relColorPicker{width:28px;height:22px;min-width:28px;padding:0;border:0;background:transparent;box-shadow:none;cursor:pointer}.gradientColumn{grid-template-columns:minmax(0,1fr)!important;gap:12px}.gradientCard{padding:0;overflow:hidden}.gradientCard>summary{list-style:none;cursor:pointer;padding:11px 13px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#ffffff,#f6faf3)}.gradientCard>summary::-webkit-details-marker{display:none}.gradientCard>summary::before{content:"▾";font-weight:900;color:var(--brand);transition:transform .15s ease}.gradientCard:not([open])>summary::before{transform:rotate(-90deg)}.gradientCardBody{padding:10px 12px 12px}.gradientActions{display:flex;gap:8px;align-items:center}.gradExportBtn{padding:5px 8px;font-size:.76rem}.settingsGrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:10px;align-items:start}.axisControlRow{display:flex;flex-wrap:wrap;gap:8px;align-items:end}.axisControlRow label{display:flex;flex-direction:column;gap:4px;min-width:130px}.axisPicker{cursor:pointer}.axisPicker:hover{text-decoration:underline}.groupSep{border-left:1px solid #d9e4d7}.siteBadge{font-size:.78rem;color:#526358}.compareActions{display:flex;gap:8px;flex-wrap:wrap}.modernHint{border-radius:12px;background:#eef7e9;border:1px solid #d7e8d2;padding:8px 10px}.tab{border-radius:999px}.card,.selectorPanel,.gradientCard{box-shadow:0 10px 34px rgba(31,77,49,.075)}
+    @media (max-width: 760px){
+      header{padding:16px 14px 12px}.appLogo{width:44px;height:44px;border-radius:12px}h1{font-size:1.28rem}.tabs{padding:8px 8px 0;gap:5px;flex-wrap:nowrap;overflow-x:auto}.tab{padding:8px 10px;white-space:nowrap;font-size:.86rem}main{padding:12px 8px 72px}.grid,.grid2,.grid3,.split,.settingsGrid{grid-template-columns:1fr!important;gap:10px}.card{border-radius:14px;padding:11px}.toolbar{gap:6px;margin-bottom:8px}.toolbar .grow{flex-basis:100%}.toolbar label.small.muted{width:100%;margin-top:2px}.toolbar select,.toolbar input{width:100%}.selectorPanelHeader{align-items:flex-start}.selectorActions{gap:4px}.miniBtn{padding:5px 7px;font-size:.75rem}.checkList{gap:5px}.checkItem{font-size:.78rem;max-width:100%}.tableWrap{max-height:62vh}.summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.metric{padding:8px}.metric .value{font-size:1.06rem}.svgBox{overflow-x:auto}.svgBox svg{min-width:720px}.gradientCardBody{padding:8px}.gradientCard>summary{padding:10px}.axisControlRow label{min-width:0;width:100%}.selectableReleves{max-height:145px}.legend{font-size:.76rem}.compactSwitch{font-size:.72rem;padding:4px 7px}.split aside.card{order:2}.relColorPicker{width:24px;height:20px;min-width:24px}.appTitle{gap:10px}input,select,textarea{font-size:16px;max-width:100%}button,.button{padding:8px 10px}.graphWorkspace{padding:10px}}
+
   </style>
 </head>
 <body>
@@ -157,7 +163,8 @@
           <div class="field"><label>Surface</label><input id="relArea" placeholder="m²"></div>
         </div>
         <div class="field"><label>Observateur</label><input id="relObserver" placeholder="Nom"></div>
-        <div class="field"><label>Localisation</label><input id="relLocation" placeholder="Commune, site, coordonnées"></div>
+        <div class="field"><label>Site</label><input id="relSite" placeholder="Ex. Vallon de Kerloc'h, parcelle A3"></div>
+        <div class="field"><label>Localisation</label><input id="relLocation" placeholder="Commune, coordonnées, précision géographique"></div>
         <div class="field"><label>Notes</label><textarea id="relNotes" placeholder="Contexte, physionomie, perturbations, remarques..."></textarea></div>
         <div class="notice small">Les modifications sont enregistrées automatiquement dans le navigateur. Utiliser l’export JSON pour sécuriser ou transférer les relevés.</div>
       </aside>
@@ -182,28 +189,23 @@
   </section>
 
   <section id="gradients" class="view">
-    <div class="card">
-      <div class="toolbar"><h2 style="margin:0" class="grow">Visualisation des gradients</h2><label class="small muted">Strate analysée</label><select id="analysisStratum"></select><label class="small muted">Étiquettes espèces</label><select id="gradientLabelMode"><option value="hover" selected>Survol / clic</option><option value="short">Abrégées</option><option value="initials">Initiales</option><option value="none">Masquées</option></select><label class="switch compactSwitch small"><input type="checkbox" class="colorBlindToggle">Palette daltoniens</label><button class="secondary miniBtn" id="exportGradientsPng">Exporter PNG</button></div>
-      <div class="selectorPanel noPrint"><div class="selectorPanelHeader"><strong class="small">Relevés affichés</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="gradient" data-select-action="active">Actif seul</button><button class="ghost miniBtn" data-kind="gradient" data-select-action="all">Tout afficher</button><button class="ghost miniBtn" data-kind="gradient" data-select-action="none">Aucun</button></div></div><div id="gradientReleveChecks" class="checkList"></div></div>
-      <div class="selectorPanel indexSelector noPrint"><div class="filterTitle"><strong class="small">Indices d’Ellenberg affichés</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="gradientIndex" data-select-action="all">Tout</button><button class="ghost miniBtn" data-kind="gradientIndex" data-select-action="common">Principaux</button></div></div><div id="gradientIndexChecks" class="checkList"></div></div>
-      <div class="legend legendHelp"><span class="key"><span class="pointLegend" style="color:#2f6b3e"></span>Espèce</span><span class="key"><span class="lineLegend" style="color:#2f6b3e"></span>Moyenne pondérée</span><span class="key"><span class="lineLegend dashed" style="color:#2f6b3e"></span>Moyenne simple</span><span class="key"><span class="bandLegend" style="color:#2f6b3e"></span>± écart-type pondéré</span></div>
-      <div id="gradientCharts" class="gradientGrid" style="margin-top:14px"></div>
+    <div class="card graphWorkspace">
+      <div class="toolbar compactToolbar"><h2 style="margin:0" class="grow">Visualisation des gradients</h2><label class="small muted">Strate</label><select id="analysisStratum"></select><label class="small muted">Étiquettes</label><select id="gradientLabelMode"><option value="hover" selected>Survol / clic</option><option value="short">Abrégées</option><option value="initials">Initiales</option><option value="none">Masquées</option></select><label class="switch compactSwitch small"><input type="checkbox" class="colorBlindToggle">Daltoniens</label><button class="secondary miniBtn" id="exportGradientsPng">Tout exporter</button></div>
+      <div class="selectorPanel noPrint slimPanel"><div class="selectorPanelHeader"><strong class="small">Relevés affichés</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="gradient" data-select-action="active">Actif</button><button class="ghost miniBtn" data-kind="gradient" data-select-action="all">Tous</button><button class="ghost miniBtn" data-kind="gradient" data-select-action="none">Aucun</button></div></div><input class="panelSearch releveFilter" data-kind="gradient" placeholder="Filtrer les relevés par nom, site ou localisation…"><div id="gradientReleveChecks" class="checkList selectableReleves"></div></div>
+      <div class="legend legendHelp slimLegend"><span class="key"><span class="pointLegend" style="color:#2f6b3e"></span>Espèce</span><span class="key"><span class="lineLegend" style="color:#2f6b3e"></span>Moyenne pondérée</span><span class="key"><span class="lineLegend dashed" style="color:#2f6b3e"></span>Moyenne simple</span><span class="key"><span class="bandLegend" style="color:#2f6b3e"></span>± écart-type pondéré</span></div>
+      <p class="small muted noPrint" style="margin:.2rem 0 .8rem">Chaque gradient peut être replié/déplié. Utiliser le sélecteur de couleur des relevés pour harmoniser les figures.</p>
+      <div id="gradientCharts" class="gradientGrid gradientColumn" style="margin-top:10px"></div>
     </div>
   </section>
 
   <section id="scatter" class="view">
     <div class="split">
-      <div class="card">
-        <div class="toolbar"><h2 class="grow" style="margin:0">Ecogrammes</h2><label class="switch compactSwitch small"><input type="checkbox" class="colorBlindToggle">Palette daltoniens</label><button class="secondary miniBtn" id="exportScatterPng">Exporter PNG</button></div>
-        <div class="toolbar">
-          <label class="small muted">Type</label><select id="scatterMode"><option value="species">Espèces des relevés sélectionnés</option><option value="releves">Moyennes des relevés + enveloppe floristique</option></select>
-          <label class="small muted">Axe X</label><select id="xGrad"></select>
-          <label class="small muted">Axe Y</label><select id="yGrad"></select>
-          <label class="small muted">Strate</label><select id="scatterStratum"></select>
-          <label class="small muted">Étiquettes points</label><select id="scatterPointLabels"><option value="hover" selected>Survol / clic</option><option value="short">Abrégées filtrées</option><option value="none">Masquées</option></select>
-          <label class="small muted">Enveloppe</label><select id="scatterEnvelopeMode"><option value="hull" selected>Bornage floristique</option><option value="sd">Dispersion ± 1 σ</option><option value="both">Bornage + dispersion</option><option value="none">Aucune</option></select>
+      <div class="card graphWorkspace">
+        <div class="toolbar compactToolbar"><h2 class="grow" style="margin:0">Ecogrammes</h2><label class="switch compactSwitch small"><input type="checkbox" class="colorBlindToggle">Daltoniens</label><button class="secondary miniBtn" id="exportScatterPng">Exporter PNG</button></div>
+        <div class="settingsGrid noPrint">
+          <div class="selectorPanel slimPanel"><div class="selectorPanelHeader"><strong class="small">Données affichées</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="scatter" data-select-action="active">Actif</button><button class="ghost miniBtn" data-kind="scatter" data-select-action="all">Tous</button><button class="ghost miniBtn" data-kind="scatter" data-select-action="none">Aucun</button></div></div><input class="panelSearch releveFilter" data-kind="scatter" placeholder="Filtrer les relevés par nom, site ou localisation…"><div id="scatterReleveChecks" class="checkList selectableReleves"></div><div class="axisControlRow"><label class="small muted">Axe X<select id="xGrad"></select></label><label class="small muted">Axe Y<select id="yGrad"></select></label><label class="small muted">Strate<select id="scatterStratum"></select></label></div></div>
+          <div class="selectorPanel slimPanel"><div class="selectorPanelHeader"><strong class="small">Rendu graphique</strong></div><div class="axisControlRow"><label class="small muted">Type<select id="scatterMode"><option value="species">Espèces</option><option value="releves">Moyennes + enveloppe</option></select></label><label class="small muted">Étiquettes<select id="scatterPointLabels"><option value="hover" selected>Survol / clic</option><option value="short">Abrégées filtrées</option><option value="none">Masquées</option></select></label><label class="small muted">Enveloppe<select id="scatterEnvelopeMode"><option value="hull" selected>Bornage floristique</option><option value="sd">Dispersion ± 1 σ</option><option value="both">Bornage + dispersion</option><option value="none">Aucune</option></select></label></div><p class="small muted" style="margin:.45rem 0 0">Astuce : cliquer sur le nom des axes dans le graphique pour faire défiler les indices.</p></div>
         </div>
-        <div class="selectorPanel noPrint"><div class="selectorPanelHeader"><strong class="small">Relevés affichés</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="scatter" data-select-action="active">Actif seul</button><button class="ghost miniBtn" data-kind="scatter" data-select-action="all">Tout afficher</button><button class="ghost miniBtn" data-kind="scatter" data-select-action="none">Aucun</button></div></div><div id="scatterReleveChecks" class="checkList"></div></div>
         <div id="scatterLegend" class="chartLegend"></div>
         <div id="scatterSvg" class="svgBox"></div>
       </div>
@@ -217,7 +219,7 @@
 
   <section id="compare" class="view">
     <div class="card">
-      <div class="toolbar"><h2 class="grow" style="margin:0">Comparaison écologique des relevés</h2><label class="small muted">Strate</label><select id="compareStratum"></select></div>
+      <div class="toolbar"><h2 class="grow" style="margin:0">Comparaison écologique des relevés</h2><label class="small muted">Strate</label><select id="compareStratum"></select><button class="secondary miniBtn" id="exportCompareCsv">CSV</button><button class="secondary miniBtn" id="exportCompareXls">Excel</button><button class="secondary miniBtn" id="exportCompareFods">LibreOffice</button></div>
       <div class="selectorPanel indexSelector noPrint"><div class="filterTitle"><strong class="small">Indices affichés dans le tableau</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="all">Tout</button><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="common">Principaux</button><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="none">Aucun</button></div></div><div id="compareIndexChecks" class="checkList"></div></div>
       <div class="tableWrap compactTable"><table id="compareTable" class="comparisonTable"></table></div>
     </div>
@@ -296,7 +298,7 @@ function norm(s){return (s||"").toString().toLowerCase().normalize("NFD").replac
 TAXA.forEach(t=>{t.nn=norm(t.n); t.ns=norm(t.s); t.q=(t.nn+" "+t.ns).trim();});
 function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
 function today(){return new Date().toISOString().slice(0,10)}
-function blankReleve(name="Nouveau relevé"){const now=new Date().toISOString();return {id:uid(),name,date:today(),observer:"",location:"",area:"",notes:"",rows:[],created_at:now,updated_at:now,device_id:getDeviceId()}}
+function blankReleve(name="Nouveau relevé"){const now=new Date().toISOString();return {id:uid(),name,date:today(),observer:"",site:"",location:"",area:"",notes:"",rows:[],created_at:now,updated_at:now,device_id:getDeviceId()}}
 let state = loadState();
 let selectedTaxon = null;
 let syncState = loadSyncState();
@@ -316,6 +318,7 @@ function normalizeReleveForSync(r){
   r.created_at=normalizeDateValue(r.created_at||r.date);
   r.updated_at=normalizeDateValue(r.updated_at||r.created_at);
   if(!r.device_id)r.device_id="legacy";
+  if(r.site==null)r.site="";
   r.rows.forEach(row=>{if(!row.line_id)row.line_id=uid();});
   return r;
 }
@@ -327,6 +330,8 @@ function normalizeAppStateForSync(s){
   if(!Array.isArray(s.scatterSelectedIds))s.scatterSelectedIds=s.selectedId?[s.selectedId]:[];
   if(!Array.isArray(s.visibleGradientKeys))s.visibleGradientKeys=GRADIENTS.map(g=>g.key);
   if(!Array.isArray(s.compareGradientKeys))s.compareGradientKeys=GRADIENTS.map(g=>g.key);
+  if(!s.releveColors || typeof s.releveColors!=="object")s.releveColors={};
+  if(!s.releveFilters || typeof s.releveFilters!=="object")s.releveFilters={};
   return s;
 }
 function touchReleve(r){if(!r)return; normalizeReleveForSync(r); r.updated_at=new Date().toISOString(); r.device_id=getDeviceId();}
@@ -422,12 +427,18 @@ const RELEVE_PALETTE_CB=["#0072B2","#D55E00","#009E73","#CC79A7","#E69F00","#56B
 function activePalette(){return state.colorBlind?RELEVE_PALETTE_CB:RELEVE_PALETTE;}
 function releveIndex(rel){const i=state.releves.findIndex(r=>r.id===rel.id); return i<0?0:i;}
 function colorFor(i){const pal=activePalette(); return pal[((i%pal.length)+pal.length)%pal.length];}
-function releveColor(rel){return colorFor(releveIndex(rel));}
+function releveColor(rel){return (state.releveColors&&state.releveColors[rel.id]) || colorFor(releveIndex(rel));}
 function ensureSelections(){["gradient","scatter"].forEach(kind=>{const key=kind+"SelectedIds"; if(!Array.isArray(state[key]))state[key]=state.selectedId?[state.selectedId]:(state.releves[0]?[state.releves[0].id]:[]); const before=state[key].length; const valid=new Set(state.releves.map(r=>r.id)); state[key]=state[key].filter(id=>valid.has(id)); if(before>0 && state[key].length===0 && state.releves.length)state[key]=[state.selectedId||state.releves[0].id];});}
 function selectedReleves(kind){ensureSelections(); const ids=new Set(state[kind+"SelectedIds"]||[]); return state.releves.filter(r=>ids.has(r.id));}
 function syncColorBlindToggles(){document.querySelectorAll(".colorBlindToggle").forEach(ch=>{ch.checked=!!state.colorBlind;});}
-function renderSelectionControls(){ensureSelections(); renderSelectionControl("gradient","gradientReleveChecks"); renderSelectionControl("scatter","scatterReleveChecks");}
-function renderSelectionControl(kind,boxId){const box=document.getElementById(boxId); if(!box)return; const ids=new Set(state[kind+"SelectedIds"]||[]); box.innerHTML=state.releves.map((r,i)=>`<label class="checkItem"><input class="releveCheck" type="checkbox" data-kind="${kind}" value="${r.id}" ${ids.has(r.id)?"checked":""}><span class="colorDot" style="background:${colorFor(i)}"></span><span>${esc(releveLabel(r))}</span></label>`).join("") || `<span class="small muted">Aucun relevé disponible.</span>`;}
+function renderSelectionControls(){ensureSelections(); renderSelectionControl("gradient","gradientReleveChecks"); renderSelectionControl("scatter","scatterReleveChecks"); document.querySelectorAll(".releveFilter").forEach(inp=>{inp.value=(state.releveFilters&&state.releveFilters[inp.dataset.kind])||"";});}
+function renderSelectionControl(kind,boxId){
+  const box=document.getElementById(boxId); if(!box)return;
+  const ids=new Set(state[kind+"SelectedIds"]||[]);
+  const query=norm((state.releveFilters&&state.releveFilters[kind])||"");
+  const rows=state.releves.filter(r=>!query || norm(`${r.name||""} ${r.site||""} ${r.location||""}`).includes(query));
+  box.innerHTML=rows.map((r,i)=>`<label class="checkItem releveChoice"><input class="releveCheck" type="checkbox" data-kind="${kind}" value="${r.id}" ${ids.has(r.id)?"checked":""}><span class="colorDot" style="background:${releveColor(r)}"></span><span>${esc(releveLabel(r))}${r.site?`<br><span class="siteBadge">${esc(r.site)}</span>`:""}</span><input class="relColorPicker" type="color" title="Couleur du relevé" data-releve-color="${r.id}" value="${esc(releveColor(r))}"></label>`).join("") || `<span class="small muted">Aucun relevé correspondant.</span>`;
+}
 function gradientIndexDefaults(kind){return kind==="common"?["lumiere","humidite_edaphique","reaction_sol_ph","niveau_trophique"]:GRADIENTS.map(g=>g.key);}
 function selectedGradientIndices(keyName){
   const keys=Array.isArray(state[keyName])?state[keyName]:GRADIENTS.map(g=>g.key);
@@ -444,7 +455,7 @@ function renderIndexControl(keyName,boxId){
 function legendFor(groups){return groups.map(grp=>`<span class="key"><span class="colorDot" style="background:${releveColor(grp.rel)}"></span>${esc(releveLabel(grp.rel))}</span>`).join("");}
 function tipAttr(txt){return `class="tipPoint" tabindex="0" data-tip="${esc(String(txt||"").replace(/\s+/g," "))}"`;}
 
-function renderMeta(){const r=current(); relName.value=r.name||""; relDate.value=r.date||""; relObserver.value=r.observer||""; relLocation.value=r.location||""; relArea.value=r.area||""; relNotes.value=r.notes||"";}
+function renderMeta(){const r=current(); relName.value=r.name||""; relDate.value=r.date||""; relObserver.value=r.observer||""; if(window.relSite)relSite.value=r.site||""; relLocation.value=r.location||""; relArea.value=r.area||""; relNotes.value=r.notes||"";}
 function renderRows(){const r=current(); const table=document.getElementById("rowsTable");
   if(!r.rows.length){table.innerHTML=`<tbody><tr><td><div class="empty">Aucune espèce saisie pour ce relevé.</div></td></tr></tbody>`;return;}
   table.innerHTML=`<thead><tr><th>Espèce</th><th>Synonyme / forme simplifiée</th><th>Strate</th><th class="num">Recouvrement</th><th class="num">% calcul</th><th class="noPrint"></th></tr></thead><tbody>`+
@@ -460,7 +471,7 @@ function renderSummary(){const r=current(); const rows=rowsWithTaxa(r); const co
 function renderGradientCharts(){const filter=document.getElementById("analysisStratum").value||"Toutes strates"; const labelMode=(document.getElementById("gradientLabelMode")?.value)||"hover"; const selected=selectedReleves("gradient"); const groups=selected.map(rel=>({rel,idx:releveIndex(rel),rows:rowsWithTaxa(rel,filter),stats:stats(rel,filter)})).filter(g=>g.rows.length);
  const legend=document.getElementById("gradientLegend"); if(legend)legend.innerHTML=legendFor(groups);
  const box=document.getElementById("gradientCharts"); if(!groups.length){box.innerHTML=`<div class="empty full">Aucune donnée pour la strate et les relevés sélectionnés.</div>`;return;}
- const indices=selectedGradientIndices("visibleGradientKeys"); box.innerHTML=indices.map(i=>gradientCard(i,groups,labelMode)).join("") || `<div class="empty full">Aucun indice sélectionné.</div>`;
+ const indices=GRADIENTS.map((g,i)=>i); box.innerHTML=indices.map(i=>gradientCard(i,groups,labelMode)).join("") || `<div class="empty full">Aucun gradient disponible.</div>`;
 }
 function scale(v,g,w=560,pad=42){return pad+(v-g.min)/(g.max-g.min)*(w-2*pad)}
 function gradientTerms(g){return (GRADIENT_TERMS[g.key]||[{v:g.min,t:g.low},{v:g.max,t:g.high}]).slice(0,5)}
@@ -488,7 +499,7 @@ function gradientSpreadPositions(items, sx, baseY){
 function gradientCard(i, groups, labelMode){const g=GRADIENTS[i], W=760, p=58, rowGap=58, H=Math.max(210,132+groups.length*rowGap+54), top=48, bottom=H-54; const sx=v=>scale(v,g,W,p); let sdBands=[], meanLines=[], species=[], labels=[], groupNames=[];
  groups.forEach((grp,gi)=>{const st=grp.stats[i], color=releveColor(grp.rel), y=96+gi*rowGap; groupNames.push(`<text x="12" y="${y+4}" font-size="10" font-weight="700" fill="${color}">${esc(releveLabel(grp.rel))}</text>`); if(st.wmean!=null){const a=Math.max(g.min,st.wmean-(st.wsd||0)), b=Math.min(g.max,st.wmean+(st.wsd||0)); sdBands.push(`<rect x="${sx(a)}" y="${y-18}" width="${Math.max(1,sx(b)-sx(a))}" height="36" rx="7" fill="${color}" opacity=".16" pointer-events="none"></rect>`); meanLines.push(`<line x1="${sx(st.wmean)}" y1="${top}" x2="${sx(st.wmean)}" y2="${bottom}" stroke="${color}" stroke-width="3.4" opacity=".96" pointer-events="none"></line>`);} if(st.mean!=null){meanLines.push(`<line x1="${sx(st.mean)}" y1="${top}" x2="${sx(st.mean)}" y2="${bottom}" stroke="${color}" stroke-width="1.8" stroke-dasharray="4 4" opacity=".62" pointer-events="none"></line>`);} const autoMode=(labelMode==="short" && grp.rows.length>24)?"initials":labelMode; const drawable=[]; grp.rows.forEach(({row,t},k)=>{const v=t.v[i]; if(v==null)return; drawable.push({row,t,k,v,r:Math.max(2.8,Math.min(7.5,Math.sqrt(pct(row))))});}); gradientSpreadPositions(drawable,sx,y).forEach(o=>{const tip=`${o.t.n} — recouvrement ${fmt(pct(o.row),2)} %`; species.push(`<circle ${tipAttr(tip)} cx="${o.cx.toFixed(1)}" cy="${o.cy.toFixed(1)}" r="${o.r}" fill="${color}" opacity=".84" stroke="#fff" stroke-width="1.2"></circle>`); if(autoMode!=="none" && autoMode!=="hover"){const lx=Math.min(W-p+18,o.cx+o.r+5), ly=o.cy-5; labels.push(`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" fill="#28352a" opacity=".86">${esc(taxonLabel(o.t.n,autoMode))}</text>`);}});});
  const ticks=axisValueLabels(g,sx,H-34,H-18); const title=groups.length>1?`${groups.length} relevés sélectionnés`:`n=${groups[0].stats[i].n} · m=${fmt(groups[0].stats[i].mean)} · mp=${fmt(groups[0].stats[i].wmean)} · σp=${fmt(groups[0].stats[i].wsd)}`;
- return `<div class="gradientCard"><div class="gradientHead"><strong>${esc(g.label)}</strong><span class="small muted">${esc(title)}</span></div><div class="svgBox"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gradient ${esc(g.label)}"><rect x="0" y="0" width="${W}" height="${H}" rx="14" fill="#fbfcf9"/><line x1="${p}" y1="${top}" x2="${W-p}" y2="${top}" stroke="#aebbad" stroke-width="1.5"/><line x1="${p}" y1="${bottom}" x2="${W-p}" y2="${bottom}" stroke="#dce5d8" stroke-width="1"/>${ticks}${groupNames.join("")}${sdBands.join("")}${meanLines.join("")}${species.join("")}${labels.join("")}</svg></div></div>`;
+ return `<details class="gradientCard" open data-gradient-key="${esc(g.key)}"><summary><strong>${esc(g.short)} · ${esc(g.label)}</strong><span class="gradientActions"><span class="small muted">${esc(title)}</span><button class="secondary gradExportBtn noPrint" type="button" data-export-gradient="${esc(g.key)}">PNG</button></span></summary><div class="gradientCardBody"><div class="svgBox"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gradient ${esc(g.label)}"><rect x="0" y="0" width="${W}" height="${H}" rx="14" fill="#fbfcf9"/><line x1="${p}" y1="${top}" x2="${W-p}" y2="${top}" stroke="#aebbad" stroke-width="1.5"/><line x1="${p}" y1="${bottom}" x2="${W-p}" y2="${bottom}" stroke="#dce5d8" stroke-width="1"/>${ticks}${groupNames.join("")}${sdBands.join("")}${meanLines.join("")}${species.join("")}${labels.join("")}</svg></div></div></details>`;
 }
 
 function scatterAxisTicks(g,scaleFn,orientation,W,H,m){const terms=gradientTerms(g); const allowed=new Set(terms.map(x=>String(x.v))); let out=""; if(orientation==="x"){for(let t=g.min;t<=g.max;t++){const x=scaleFn(t); out+=`<line x1="${x}" y1="${m.t}" x2="${x}" y2="${H-m.b}" stroke="#edf2ea"/>`; if(allowed.has(String(t))){const anchor=t===g.min?"start":(t===g.max?"end":"middle"); out+=`<text x="${x}" y="${H-m.b+18}" text-anchor="${anchor}" font-size="10" fill="#647166">${t}</text>`;}} out+=terms.map(o=>{const x=scaleFn(o.v), anchor=o.v===g.min?"start":(o.v===g.max?"end":"middle"); return `<text x="${x}" y="${H-m.b+38}" text-anchor="${anchor}" font-size="9.5" fill="#3f4a40">${esc(shortTerm(o.t,16))}</text>`;}).join("");}
@@ -518,7 +529,7 @@ function renderScatter(){let mode=scatterMode.value; if(mode==="species_active"|
  const guides=leaderLines(pts);
  const ghostGuides=leaderLines(ghostLeaderPts).replace(/stroke-width="1"/g,'stroke-width=".75"').replace(/stroke-opacity=".48"/g,'stroke-opacity=".20"');
  const circles=pts.map(pt=>`<circle ${tipAttr(`${pt.label} — X ${fmt(pt.x,2)} / Y ${fmt(pt.y,2)} — ${pt.sub}`)} cx="${(pt.px??sx(pt.x)).toFixed(1)}" cy="${(pt.py??sy(pt.y)).toFixed(1)}" r="${pt.r}" fill="${pt.fill}" opacity=".9" stroke="#fff" stroke-width="1.8"></circle>`).join("");
- const svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Écogramme"><rect x="0" y="0" width="${W}" height="${H}" rx="18" fill="#fbfcf9"/><line x1="${m.l}" y1="${H-m.b}" x2="${W-m.r}" y2="${H-m.b}" stroke="#647166"/><line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${H-m.b}" stroke="#647166"/>${ticks}<text x="${(m.l+W-m.r)/2}" y="${H-16}" text-anchor="middle" font-weight="700" fill="#172015">${esc(gx.label)}</text><text transform="translate(64 ${(m.t+H-m.b)/2}) rotate(-90)" text-anchor="middle" font-weight="700" fill="#172015">${esc(gy.label)}</text>${envelopes.join("")}${ghostGuides}${ghostPts.join("")}${guides}${circles}${pointLabels}</svg>`;
+ const svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Écogramme"><rect x="0" y="0" width="${W}" height="${H}" rx="18" fill="#fbfcf9"/><line x1="${m.l}" y1="${H-m.b}" x2="${W-m.r}" y2="${H-m.b}" stroke="#647166"/><line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${H-m.b}" stroke="#647166"/>${ticks}<text class="axisPicker" data-axis="x" x="${(m.l+W-m.r)/2}" y="${H-16}" text-anchor="middle" font-weight="700" fill="#172015">${esc(gx.label)} ↻</text><text class="axisPicker" data-axis="y" transform="translate(64 ${(m.t+H-m.b)/2}) rotate(-90)" text-anchor="middle" font-weight="700" fill="#172015">${esc(gy.label)} ↻</text>${envelopes.join("")}${ghostGuides}${ghostPts.join("")}${guides}${circles}${pointLabels}</svg>`;
  document.getElementById("scatterSvg").innerHTML = pts.length?svg:`<div class="empty">Aucun point calculable pour ces axes, cette strate et les relevés sélectionnés.</div>`;
  document.getElementById("scatterInfo").innerHTML = pts.slice(0,16).map(p=>`<div class="miniItem"><strong>${esc(p.label)}</strong><span class="small muted">${esc(gx.short)}=${fmt(p.x)} · ${esc(gy.short)}=${fmt(p.y)} · ${esc(p.sub)}</span></div>`).join("") || `<div class="empty">Aucune donnée.</div>`;
 }
@@ -532,7 +543,7 @@ function renderCompare(){
   const head2=`<tr>`+indices.map(()=>`<th class="num groupSep" title="Moyenne simple">Moy.</th><th class="num" title="Moyenne pondérée par recouvrement">Pond.</th><th class="num" title="Écart-type simple">σ</th><th class="num" title="Écart-type pondéré">σp</th>`).join("")+`</tr></thead>`;
   const body=state.releves.map(r=>{
     const st=stats(r,filter);
-    return `<tr><td class="relCell"><strong>${esc(r.name||"Sans nom")}</strong><br><span class="small muted">${esc(r.location||"")}</span></td><td class="num">${rowsWithTaxa(r,filter).length}</td>`+indices.map(i=>{const x=st[i]; return `<td class="num groupSep">${fmt(x.mean)}</td><td class="num"><strong>${fmt(x.wmean)}</strong></td><td class="num">${fmt(x.sd)}</td><td class="num">${fmt(x.wsd)}</td>`;}).join("")+`</tr>`;
+    return `<tr><td class="relCell"><strong>${esc(r.name||"Sans nom")}</strong><br><span class="small muted">${esc([r.site,r.location].filter(Boolean).join(" · "))}</span></td><td class="num">${rowsWithTaxa(r,filter).length}</td>`+indices.map(i=>{const x=st[i]; return `<td class="num groupSep">${fmt(x.mean)}</td><td class="num"><strong>${fmt(x.wmean)}</strong></td><td class="num">${fmt(x.sd)}</td><td class="num">${fmt(x.wsd)}</td>`;}).join("")+`</tr>`;
   }).join("");
   table.innerHTML=head1+head2+`<tbody>${body}</tbody>`;
 }
@@ -542,9 +553,9 @@ function selectTaxon(id){selectedTaxon=byId.get(Number(id)); if(!selectedTaxon)r
 function addSelected(){if(!selectedTaxon && norm(speciesSearch.value)==="sol nu")selectedTaxon=byId.get(-1); if(!selectedTaxon){alert("Sélectionner une espèce ou « sol nu » dans la liste de recherche.");return;} const r=current(); const mode=coverMode.value; const cover=mode==="pct"?parseFloat(pctValue.value||0):bbValue.value; const stratum=selectedTaxon.id===-1?"Sans végétation":rowStratum.value; r.rows.push({line_id:uid(),tid:selectedTaxon.id,stratum,mode,cover}); touchReleve(r); selectedTaxon=null; speciesSearch.value=""; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; save(); renderAll();}
 window.removeRow=function(idx){const r=current(); r.rows.splice(idx,1); touchReleve(r); save(); renderAll();}
 window.moveRow=function(idx,delta){const r=current(); const rows=r.rows; const j=idx+delta; if(j<0||j>=rows.length)return; [rows[idx],rows[j]]=[rows[j],rows[idx]]; touchReleve(r); save(); renderAll();}
-function updateMeta(){const r=current(); r.name=relName.value; r.date=relDate.value; r.observer=relObserver.value; r.location=relLocation.value; r.area=relArea.value; r.notes=relNotes.value; touchReleve(r); save(); renderReleveSelect(); renderSummary(); renderCompare(); renderScatter();}
+function updateMeta(){const r=current(); r.name=relName.value; r.date=relDate.value; r.observer=relObserver.value; r.site=(window.relSite?relSite.value:""); r.location=relLocation.value; r.area=relArea.value; r.notes=relNotes.value; touchReleve(r); save(); renderReleveSelect(); renderSummary(); renderCompare(); renderScatter();}
 function download(filename, text, mime="application/json"){const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:mime})); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function rowsCsv(){const lines=[["releve_id","releve_nom","date","observateur","localisation","surface","taxon_id","nom_scientifique","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>r.rows.forEach(row=>{const t=byId.get(row.tid)||{v:[]}; lines.push([r.id,r.name,r.date,r.observer,r.location,r.area,row.tid,t.n,t.s,row.stratum,row.mode,row.cover,pct(row),...GRADIENTS.map((g,i)=>t.v[i])]);})); return lines.map(line=>line.map(v=>`"${(v??"").toString().replace(/"/g,'""')}"`).join(";")).join("\n");}
+function rowsCsv(){const lines=[["releve_id","releve_nom","site","date","observateur","localisation","surface","taxon_id","nom_scientifique","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>r.rows.forEach(row=>{const t=byId.get(row.tid)||{v:[]}; lines.push([r.id,r.name,r.site||"",r.date,r.observer,r.location,r.area,row.tid,t.n,t.s,row.stratum,row.mode,row.cover,pct(row),...GRADIENTS.map((g,i)=>t.v[i])]);})); return lines.map(line=>line.map(v=>`"${(v??"").toString().replace(/"/g,'""')}"`).join(";")).join("\n");}
 
 
 function safeDate(s){try{return new Date(s).toLocaleString("fr-FR");}catch(e){return s||"—";}}
@@ -628,7 +639,7 @@ async function ensureGoogleSheetLinked(createIfMissing=true){
   renderSyncPanel();
   return file.id;
 }
-function sheetRowsReleves(src=state){return [["releve_id","nom","date","observateur","localisation","surface","notes","nb_lignes","created_at","updated_at","device_id"]].concat((src.releves||[]).map(r=>[r.id,r.name||"",r.date||"",r.observer||"",r.location||"",r.area||"",r.notes||"",(r.rows||[]).length,r.created_at||"",r.updated_at||"",r.device_id||""]));}
+function sheetRowsReleves(src=state){return [["releve_id","nom","site","date","observateur","localisation","surface","notes","nb_lignes","created_at","updated_at","device_id"]].concat((src.releves||[]).map(r=>[r.id,r.name||"",r.site||"",r.date||"",r.observer||"",r.location||"",r.area||"",r.notes||"",(r.rows||[]).length,r.created_at||"",r.updated_at||"",r.device_id||""]));}
 function sheetRowsLignes(src=state){const rows=[["ligne_id","releve_id","releve_nom","taxon_id","taxon","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule","sol_nu",...GRADIENTS.map(g=>g.label)]]; (src.releves||[]).forEach(r=>(r.rows||[]).forEach((row,i)=>{const t=byId.get(row.tid)||{n:"",s:"",v:[]}; rows.push([row.line_id||`${r.id}:${i+1}`,r.id,r.name||"",row.tid??"",t.n||"",t.s||"",row.stratum||"",row.mode||"",row.cover??"",pct(row),row.tid===-1?"oui":"",...GRADIENTS.map((g,j)=>t.v?.[j]??"")]);})); return rows;}
 function sheetRowsSynthese(){const rows=[["releve_id","releve_nom","strate","gradient","code","moyenne_simple","moyenne_ponderee","ecart_type_simple","ecart_type_pondere","nb_taxons_utilises","nb_taxons_sans_indice","recouvrement_utilise"]]; state.releves.forEach(r=>stats(r,"Toutes strates").forEach(x=>rows.push([r.id,r.name||"","Toutes strates",x.g.label,x.g.short,x.mean??"",x.wmean??"",x.sd??"",x.wsd??"",x.n,x.missing,x.sw??""]))); return rows;}
 function sheetRowsParametres(){return [["cle","valeur"],["version_application",APP_VERSION],["source_indices","Baseflor simplifiée"],["mode_synchronisation","fusion_non_destructive_par_releve_id_et_updated_at"],["conversion_i","0.01"],["conversion_r","0.1"],["conversion_+","0.5"],["conversion_1","2.5"],["conversion_2","15"],["conversion_3","37.5"],["conversion_4","62.5"],["conversion_5","87.5"],["exporte_le",new Date().toISOString()]];}
@@ -649,7 +660,7 @@ async function readRemoteStateFromGoogleSheet(id){
 }
 async function reconstructStateFromSheetTables(id){
   const [relData,lineData]=await Promise.all([
-    googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/releves!A1:K`).catch(()=>({values:[]})),
+    googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/releves!A1:L`).catch(()=>({values:[]})),
     googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/lignes_releve!A1:K`).catch(()=>({values:[]}))
   ]);
   const relRows=relData.values||[], lineRows=lineData.values||[];
@@ -658,7 +669,7 @@ async function reconstructStateFromSheetTables(id){
   const idx=name=>relHeader.indexOf(name);
   const get=(r,name)=>{const i=idx(name); return i>=0?(r[i]||""):"";};
   const map=new Map();
-  relRows.slice(1).forEach(row=>{const id=get(row,"releve_id")||uid(); const rel={id,name:get(row,"nom")||"Sans nom",date:get(row,"date"),observer:get(row,"observateur"),location:get(row,"localisation"),area:get(row,"surface"),notes:get(row,"notes"),created_at:get(row,"created_at"),updated_at:get(row,"updated_at"),device_id:get(row,"device_id"),rows:[]}; normalizeReleveForSync(rel); map.set(id,rel);});
+  relRows.slice(1).forEach(row=>{const id=get(row,"releve_id")||uid(); const rel={id,name:get(row,"nom")||"Sans nom",site:get(row,"site"),date:get(row,"date"),observer:get(row,"observateur"),location:get(row,"localisation"),area:get(row,"surface"),notes:get(row,"notes"),created_at:get(row,"created_at"),updated_at:get(row,"updated_at"),device_id:get(row,"device_id"),rows:[]}; normalizeReleveForSync(rel); map.set(id,rel);});
   if(lineRows.length>1){
     const h=lineRows[0].map(x=>norm(x).replace(/ /g,"_")); const ix=name=>h.indexOf(name); const gv=(r,name)=>{const i=ix(name); return i>=0?(r[i]||""):"";};
     lineRows.slice(1).forEach(row=>{const rid=gv(row,"releve_id"); const rel=map.get(rid); if(!rel)return; const tid=parseInt(gv(row,"taxon_id"),10); rel.rows.push({line_id:gv(row,"ligne_id")||uid(),tid:Number.isFinite(tid)?tid:null,stratum:gv(row,"strate"),mode:gv(row,"mode_recouvrement"),cover:gv(row,"recouvrement_saisi")});});
@@ -732,13 +743,25 @@ function imageFromSvg(svg){return new Promise((resolve,reject)=>{const clone=svg
 async function exportVisibleSvgsPng(selector,filename){const svgs=[...document.querySelectorAll(selector)].filter(svg=>svg && svg.tagName.toLowerCase()==="svg"); if(!svgs.length){alert("Aucun graphique exportable dans l’affichage courant.");return;} const meta=svgs.map(svg=>{const vb=(svg.getAttribute("viewBox")||`0 0 ${svg.clientWidth||800} ${svg.clientHeight||500}`).trim().split(/\s+/).map(Number); return {svg,w:vb[2]||800,h:vb[3]||500};}); const scale=2, pad=28, gap=26; const W=Math.max(...meta.map(o=>o.w))+pad*2; const H=meta.reduce((s,o)=>s+o.h,0)+gap*(meta.length-1)+pad*2; const canvas=document.createElement("canvas"); canvas.width=Math.ceil(W*scale); canvas.height=Math.ceil(H*scale); const ctx=canvas.getContext("2d"); ctx.scale(scale,scale); ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,W,H); let y=pad; for(const item of meta){const img=await imageFromSvg(item.svg); ctx.drawImage(img,pad,y,item.w,item.h); y+=item.h+gap;} canvas.toBlob(blob=>{if(!blob){alert("Export PNG impossible.");return;} const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);},"image/png");}
 
 function initTooltip(){let tip=document.getElementById("chartTooltip"); if(!tip){tip=document.createElement("div"); tip.id="chartTooltip"; tip.className="chartTooltip"; document.body.appendChild(tip);} let pinned=false; const move=e=>{const pad=14; let x=e.clientX+pad,y=e.clientY+pad; tip.style.display="block"; const r=tip.getBoundingClientRect(); if(x+r.width>window.innerWidth-8)x=e.clientX-r.width-pad; if(y+r.height>window.innerHeight-8)y=e.clientY-r.height-pad; tip.style.left=Math.max(8,x)+"px"; tip.style.top=Math.max(8,y)+"px";}; const show=(el,e)=>{tip.innerHTML=esc(el.dataset.tip||""); tip.style.display="block"; move(e);}; const hide=()=>{tip.style.display="none";}; document.addEventListener("mouseover",e=>{if(pinned)return; const el=e.target.closest?.("[data-tip]"); if(el)show(el,e);}); document.addEventListener("mousemove",e=>{if(!pinned && tip.style.display==="block")move(e);}); document.addEventListener("mouseout",e=>{if(!pinned && e.target.closest?.("[data-tip]"))hide();}); document.addEventListener("click",e=>{const el=e.target.closest?.("[data-tip]"); if(el){pinned=true; show(el,e); e.stopPropagation();} else if(pinned){pinned=false; hide();}});}
+
+function getCompareTableRows(){
+  const table=document.getElementById("compareTable"); if(!table)return [];
+  return [...table.querySelectorAll("tr")].map(tr=>[...tr.children].map(td=>(td.innerText||"").replace(/\s+/g," ").trim()));
+}
+function csvEscape(v){v=(v??"").toString(); return /[";\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function exportCompareCsvFile(){const rows=getCompareTableRows(); if(!rows.length){alert("Aucun tableau à exporter.");return;} download(`comparaison_releves_${new Date().toISOString().slice(0,10)}.csv`, rows.map(r=>r.map(csvEscape).join(";")).join("\n"), "text/csv;charset=utf-8");}
+function exportCompareXlsFile(){const rows=getCompareTableRows(); if(!rows.length){alert("Aucun tableau à exporter.");return;} const html=`<html><head><meta charset="utf-8"></head><body><table>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table></body></html>`; download(`comparaison_releves_${new Date().toISOString().slice(0,10)}.xls`, html, "application/vnd.ms-excel;charset=utf-8");}
+function xmlEsc(v){return (v??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
+function exportCompareFodsFile(){const rows=getCompareTableRows(); if(!rows.length){alert("Aucun tableau à exporter.");return;} const body=rows.map(r=>`<table:table-row>${r.map(c=>`<table:table-cell office:value-type="string"><text:p>${xmlEsc(c)}</text:p></table:table-cell>`).join("")}</table:table-row>`).join(""); const xml=`<?xml version="1.0" encoding="UTF-8"?><office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" office:version="1.2"><office:body><office:spreadsheet><table:table table:name="Comparaison">${body}</table:table></office:spreadsheet></office:body></office:document>`; download(`comparaison_releves_${new Date().toISOString().slice(0,10)}.fods`, xml, "application/vnd.oasis.opendocument.spreadsheet-flat-xml;charset=utf-8");}
+async function exportSingleSvgPng(svg,filename){if(!svg){alert("Graphique introuvable.");return;} const img=await imageFromSvg(svg); const vb=(svg.getAttribute("viewBox")||"0 0 800 300").split(/\s+/).map(Number); const w=vb[2]||800,h=vb[3]||300,scale=2,pad=24; const canvas=document.createElement("canvas"); canvas.width=(w+pad*2)*scale; canvas.height=(h+pad*2)*scale; const ctx=canvas.getContext("2d"); ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,pad*scale,pad*scale,w*scale,h*scale); const a=document.createElement("a"); a.href=canvas.toDataURL("image/png"); a.download=filename; a.click();}
+
 function bind(){
  document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.view).classList.add("active"); renderAll();}));
  releveSelect.addEventListener("change",e=>{state.selectedId=e.target.value; save(); renderAll();});
  newReleve.addEventListener("click",()=>{const r=blankReleve(`Relevé ${state.releves.length+1}`); state.releves.push(r); state.selectedId=r.id; state.gradientSelectedIds=[r.id]; state.scatterSelectedIds=[r.id]; save(); renderAll();});
  duplicateReleve.addEventListener("click",()=>{const src=JSON.parse(JSON.stringify(current())); src.id=uid(); src.name=(src.name||"Relevé")+" — copie"; src.created_at=new Date().toISOString(); src.updated_at=src.created_at; src.device_id=getDeviceId(); (src.rows||[]).forEach(row=>row.line_id=uid()); state.releves.push(src); state.selectedId=src.id; state.gradientSelectedIds=[src.id]; state.scatterSelectedIds=[src.id]; save(); renderAll();});
  deleteReleve.addEventListener("click",()=>{if(state.releves.length<=1){alert("Conserver au moins un relevé.");return;} if(confirm("Supprimer le relevé actif ?")){state.releves=state.releves.filter(r=>r.id!==state.selectedId); state.selectedId=state.releves[0].id; save(); renderAll();}});
- [relName,relDate,relObserver,relLocation,relArea,relNotes].forEach(el=>el.addEventListener("input",updateMeta));
+ [relName,relDate,relObserver,window.relSite,relLocation,relArea,relNotes].filter(Boolean).forEach(el=>el.addEventListener("input",updateMeta));
  speciesSearch.addEventListener("input",e=>{selectedTaxon=null; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; showSuggestions(searchTaxa(e.target.value));});
  suggestions.addEventListener("click",e=>{const item=e.target.closest(".suggestion"); if(item)selectTaxon(item.dataset.id);});
  document.addEventListener("click",e=>{if(!e.target.closest(".suggestWrap"))suggestions.classList.remove("open")});
@@ -750,6 +773,10 @@ function bind(){
 
  document.addEventListener("change",e=>{if(e.target.classList?.contains("indexCheck")){const keyName=e.target.dataset.keyname; const values=[...document.querySelectorAll(`.indexCheck[data-keyname="${keyName}"]:checked`)].map(x=>x.value); state[keyName]=values; save(); renderAll();}});
  document.addEventListener("click",e=>{const btn=e.target.closest?.("[data-kind='gradientIndex'],[data-kind='compareIndex']"); if(!btn)return; const keyName=btn.dataset.kind==="gradientIndex"?"visibleGradientKeys":"compareGradientKeys"; const action=btn.dataset.selectAction; if(action==="all")state[keyName]=GRADIENTS.map(g=>g.key); else if(action==="common")state[keyName]=gradientIndexDefaults("common"); else if(action==="none")state[keyName]=[]; save(); renderAll();});
+ document.addEventListener("input",e=>{if(e.target.classList?.contains("releveFilter")){const kind=e.target.dataset.kind; state.releveFilters=state.releveFilters||{}; state.releveFilters[kind]=e.target.value||""; save(); renderSelectionControls();}});
+ document.addEventListener("input",e=>{if(e.target.matches?.("[data-releve-color]")){state.releveColors=state.releveColors||{}; state.releveColors[e.target.dataset.releveColor]=e.target.value; save(); renderAll();}});
+ document.addEventListener("click",e=>{const axis=e.target.closest?.(".axisPicker")?.dataset.axis; if(axis){const sel=axis==="x"?xGrad:yGrad; sel.selectedIndex=(sel.selectedIndex+1)%sel.options.length; save(); renderScatter(); e.stopPropagation();}});
+ document.addEventListener("click",e=>{const btn=e.target.closest?.("[data-export-gradient]"); if(btn){const card=btn.closest(".gradientCard"); const svg=card?.querySelector("svg"); exportSingleSvgPng(svg,`gradient_${btn.dataset.exportGradient}_${new Date().toISOString().slice(0,10)}.png`); e.preventDefault(); e.stopPropagation();}});
  document.addEventListener("change",e=>{if(e.target.classList?.contains("colorBlindToggle")){state.colorBlind=!!e.target.checked; syncColorBlindToggles(); save(); renderAll();}});
  if(window.exportGradientsPng)exportGradientsPng.addEventListener("click",()=>exportVisibleSvgsPng("#gradientCharts svg",`gradients_releves_${new Date().toISOString().slice(0,10)}.png`));
  if(window.exportScatterPng)exportScatterPng.addEventListener("click",()=>exportVisibleSvgsPng("#scatterSvg svg",`ecogramme_releves_${new Date().toISOString().slice(0,10)}.png`));
@@ -757,6 +784,9 @@ function bind(){
  if(window.resetAppCache)resetAppCache.addEventListener("click",resetPwaCache);
  exportJson.addEventListener("click",()=>download(`releves_botaniques_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(state,null,2)));
  exportCsv.addEventListener("click",()=>download(`releves_botaniques_lignes_${new Date().toISOString().slice(0,10)}.csv`, rowsCsv(), "text/csv;charset=utf-8"));
+ if(window.exportCompareCsv)exportCompareCsv.addEventListener("click",exportCompareCsvFile);
+ if(window.exportCompareXls)exportCompareXls.addEventListener("click",exportCompareXlsFile);
+ if(window.exportCompareFods)exportCompareFods.addEventListener("click",exportCompareFodsFile);
  importJson.addEventListener("change",async e=>{const file=e.target.files[0]; if(!file)return; try{const txt=await file.text(); const obj=JSON.parse(txt); if(!obj.releves||!Array.isArray(obj.releves))throw new Error("Format non reconnu"); if(confirm("Remplacer les relevés stockés par le contenu du fichier JSON ?")){state=obj; if(!state.selectedId && state.releves[0])state.selectedId=state.releves[0].id; save(); renderAll();}}catch(err){alert("Import impossible : "+err.message)}});
  if(window.saveGoogleClientId)saveGoogleClientId.addEventListener("click",()=>handleGoogleAction("saveClient"));
  if(window.googleSignIn)googleSignIn.addEventListener("click",()=>handleGoogleAction("signin"));
