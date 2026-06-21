@@ -6,9 +6,9 @@
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
   <title>Application de visualisation des relevés botaniques</title>
-  <!-- v12 : retour base stable v9, thème clair forcé, Google Sheet visible, bouton purge cache -->
+  <!-- v13 : synchronisation Google Sheet non destructive, filtres indices, ergonomie mobile et charte modernisée -->
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#f7f8f5">
+  <meta name="theme-color" content="#f2f6ef">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Relevés botaniques">
@@ -18,15 +18,15 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root{
-      --bg:#f7f8f5; --panel:#ffffff; --ink:#172015; --muted:#647166; --line:#dfe6dc;
-      --brand:#2f6b3e; --brand2:#e5f0df; --accent:#d59b27; --danger:#9d2f2f;
-      --shadow:0 14px 35px rgba(25,45,25,.08); --radius:18px;
+      --bg:#f2f6ef; --panel:#ffffff; --ink:#172015; --muted:#637166; --line:#dbe5d8;
+      --brand:#2e6f43; --brandDark:#1f4d31; --brand2:#e7f2e2; --accent:#c99022; --danger:#a43a35;
+      --soft:#f9fbf6; --shadow:0 16px 42px rgba(31,77,49,.10); --radius:18px;
     }
 
-    html, body { color-scheme: light !important; background:#f7f8f5 !important; }
+    html, body { color-scheme: light !important; background:var(--bg) !important; }
     @media (prefers-color-scheme: dark){
       :root{
-        --bg:#f7f8f5 !important; --panel:#ffffff !important; --ink:#172015 !important; --muted:#647166 !important; --line:#dfe6dc !important;
+        --bg:#f2f6ef !important; --panel:#ffffff !important; --ink:#172015 !important; --muted:#647166 !important; --line:#dfe6dc !important;
         --brand:#2f6b3e !important; --brand2:#e5f0df !important; --accent:#d59b27 !important; --danger:#9d2f2f !important;
         --shadow:0 14px 35px rgba(25,45,25,.08) !important; --radius:18px !important;
       }
@@ -41,19 +41,19 @@
     .installBadge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 10px;background:#edf6e8;color:#25512f;font-weight:750}
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.45}
-    header{padding:26px 28px 18px;background:linear-gradient(135deg,#eef6e9,#f9faf4 55%,#fff4d7);border-bottom:1px solid var(--line)}
+    header{padding:26px 28px 18px;background:radial-gradient(circle at 8% 0%,#ffffff 0,#eef6e9 34%,transparent 68%),linear-gradient(135deg,#eff7eb,#fbfcf6 58%,#fff4d7);border-bottom:1px solid var(--line)}
     h1{margin:0 0 8px;font-size:clamp(1.5rem,2.5vw,2.35rem);letter-spacing:-.03em}
     header p{margin:0;max-width:1050px;color:var(--muted)}
     .betaBadge{display:inline-block;margin-left:.7em;color:#b00020;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
     .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
     button,.button,select,input,textarea{font:inherit;border:1px solid var(--line);border-radius:12px;background:white;color:var(--ink)}
-    button,.button{cursor:pointer;padding:10px 13px;background:var(--brand);color:#fff;border-color:var(--brand);font-weight:650}
-    button.secondary{background:#fff;color:var(--brand);border-color:#b9cfb7}.ghost{background:transparent;color:var(--brand);border-color:transparent}.danger{background:var(--danger);border-color:var(--danger)}
+    button,.button{cursor:pointer;padding:10px 13px;background:var(--brand);color:#fff;border-color:var(--brand);font-weight:700;box-shadow:0 3px 10px rgba(47,107,62,.10);transition:transform .12s ease, box-shadow .12s ease, background .12s ease} button:hover,.button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(47,107,62,.16)}
+    button.secondary{background:#fff;color:var(--brandDark);border-color:#b9cfb7}.ghost{background:transparent;color:var(--brandDark);border-color:transparent;box-shadow:none}.danger{background:var(--danger);border-color:var(--danger)}
     input,select,textarea{padding:10px 12px;min-width:0;font-size:16px} textarea{width:100%;min-height:70px;resize:vertical}
     .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 24px 0}.tab{background:#fff;color:var(--muted);border-color:var(--line)}.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
     main{padding:22px 24px 45px;max-width:1480px;margin:0 auto}.view{display:none}.view.active{display:block}
     .grid{display:grid;grid-template-columns:360px 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.full{grid-column:1/-1}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}.card h2,.card h3{margin:0 0 12px}.card h2{font-size:1.18rem}.card h3{font-size:1.02rem;color:#243525}.muted{color:var(--muted)}.small{font-size:.86rem}.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 9px;background:var(--brand2);color:#244b2c;font-size:.82rem;font-weight:650}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}.field label{font-weight:650;font-size:.88rem;color:#334335}
+    .card{background:linear-gradient(180deg,#fff,#fffefd);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}.card h2,.card h3{margin:0 0 12px}.card h2{font-size:1.18rem}.card h3{font-size:1.02rem;color:#243525}.muted{color:var(--muted)}.small{font-size:.86rem}.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 9px;background:var(--brand2);color:#244b2c;font-size:.82rem;font-weight:650}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}.field label{font-weight:650;font-size:.88rem;color:#334335}
     table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left;vertical-align:top}th{font-size:.82rem;color:#536055;background:#fafcf8;position:sticky;top:0;z-index:1}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}.tableWrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:14px}
     .suggestWrap{position:relative}.suggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px rgba(20,40,20,.14);z-index:20;max-height:340px;overflow:auto;display:none}.suggestions.open{display:block}.suggestion{padding:10px 12px;border-bottom:1px solid #eef2eb;cursor:pointer}.suggestion:hover,.suggestion.active{background:#f0f7ec}.suggestion b{display:block}.suggestion span{font-size:.82rem;color:var(--muted)}
     .summary{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:10px}.metric{background:#fbfcf9;border:1px solid var(--line);border-radius:14px;padding:10px}.metric .label{font-size:.78rem;color:var(--muted);font-weight:650}.metric .value{font-size:1.28rem;font-weight:800;margin-top:3px}
@@ -65,40 +65,60 @@
     .syncStatus strong{color:var(--ink)}
     .syncStatus.ok{border-color:#b9d8b9;background:#f2fbf0}.syncStatus.warn{border-color:#e6d19a;background:#fff9e9}.syncStatus.err{border-color:#e5b5b5;background:#fff2f2}
     .syncGrid{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:10px;align-items:end}
+
+    .compactSwitch{padding:5px 8px;font-size:.78rem;min-height:0;line-height:1.2;gap:5px;box-shadow:none}
+    .compactSwitch input{width:14px;height:14px;min-height:0}
+    .indexSelector{margin-top:10px}
+    .indexSelector .checkItem{padding:5px 8px;font-size:.80rem}
+    .filterTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+    .syncActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .syncActions button{min-width:0}
+    .syncHint{font-size:.84rem;color:var(--muted);margin:.5rem 0 0}
+    .tableWrap.compactTable{max-height:640px}
+    .comparisonTable th,.comparisonTable td{font-size:.82rem;padding:7px 6px;white-space:nowrap}
+    .comparisonTable th.groupSep,.comparisonTable td.groupSep{border-left:2px solid #d5e1d2}
+    .comparisonTable .relCell{min-width:190px;white-space:normal}
+    .mobileOnly{display:none}
     @media(max-width:1040px){.grid,.split{grid-template-columns:1fr}.gradientGrid{grid-template-columns:1fr}.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.grid3,.grid2{grid-template-columns:1fr}}
     @media(max-width:760px){
       :root{--radius:14px}
-      body{font-size:15px}
-      header{padding:18px 14px 14px}
-      h1{font-size:1.38rem;line-height:1.15}
-      header p{font-size:.92rem;line-height:1.35}
-      .betaBadge{display:block;margin:.35rem 0 0}
-      .tabs{position:sticky;top:0;z-index:50;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;padding:8px 10px;background:rgba(247,248,245,.97);border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch}
+      body{font-size:15px;overflow-x:hidden}
+      header{padding:16px 12px 12px}
+      .appLogo{width:48px;height:48px;border-radius:13px}
+      .appTitle{gap:10px;align-items:flex-start}
+      h1{font-size:1.25rem;line-height:1.14;letter-spacing:-.02em}
+      header p{font-size:.88rem;line-height:1.32}
+      .betaBadge{display:inline-block;margin:.35rem 0 0;font-size:.82rem}
+      .bar{margin-top:12px;gap:7px}
+      .tabs{position:sticky;top:0;z-index:50;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;padding:8px 10px;background:rgba(242,246,239,.97);border-bottom:1px solid var(--line);-webkit-overflow-scrolling:touch}
       .tabs::-webkit-scrollbar{height:4px}
-      .tab{white-space:nowrap;padding:9px 10px;min-height:42px}
-      main{padding:12px 10px 30px}
-      .card{padding:12px;border-radius:14px;box-shadow:0 8px 22px rgba(25,45,25,.07)}
-      .card h2{font-size:1.05rem}.card h3{font-size:.98rem}
-      .grid,.split,.grid2,.grid3,.syncGrid{grid-template-columns:1fr!important;gap:12px}
-      .summary{grid-template-columns:1fr 1fr;gap:8px}
-      .metric{padding:9px}.metric .value{font-size:1.05rem}
-      .toolbar{display:grid;grid-template-columns:1fr;align-items:stretch;gap:9px}
-      .toolbar>*{width:100%!important;max-width:100%;flex:1 1 auto!important}
-      .toolbar .grow{flex:1 1 auto!important}
+      .tab{white-space:nowrap;padding:8px 9px;min-height:38px;font-size:.86rem;border-radius:10px}
+      main{padding:10px 8px 28px;max-width:100vw}
+      .card{padding:11px;border-radius:14px;box-shadow:0 7px 20px rgba(25,45,25,.065);margin-bottom:10px}
+      .card h2{font-size:1.02rem;margin-bottom:9px}.card h3{font-size:.96rem;margin-bottom:8px}
+      .grid,.split,.grid2,.grid3,.syncGrid{grid-template-columns:1fr!important;gap:10px}
+      .summary{grid-template-columns:1fr 1fr;gap:7px}
+      .metric{padding:8px}.metric .label{font-size:.72rem}.metric .value{font-size:1rem}
+      .toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;gap:7px;margin-bottom:9px}
+      .toolbar>h2,.toolbar>.grow,.toolbar>.field.grow{grid-column:1/-1;width:100%!important}
       .toolbar .field{margin-bottom:0}.toolbar .field[style]{width:100%!important}
-      .toolbar button,.toolbar select,.toolbar input{width:100%;min-height:44px}
-      .row{display:grid;grid-template-columns:1fr;gap:8px}.row button{width:100%}
-      button,.button,select,input,textarea{min-height:44px}
-      .selectorPanel{padding:9px;margin:8px 0}
-      .selectorPanelHeader{display:grid;grid-template-columns:1fr;gap:8px;align-items:stretch}
-      .selectorActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.selectorActions .miniBtn{width:100%;padding:8px 6px}
-      .checkList{display:grid;grid-template-columns:1fr;gap:6px}.checkItem{width:100%;border-radius:12px;padding:8px 10px;justify-content:flex-start}
-      .legend,.chartLegend{gap:7px;font-size:.78rem}.legendHelp{padding:8px}.key{align-items:center}
-      .gradientGrid{grid-template-columns:1fr;gap:10px}.gradientCard{padding:10px}.gradientHead{display:grid;grid-template-columns:1fr;gap:3px}
+      .toolbar button,.toolbar select,.toolbar input{width:100%;min-height:40px;font-size:16px}
+      button,.button,select,input,textarea{min-height:40px;border-radius:10px}
+      button,.button{padding:8px 10px}
+      .miniBtn{padding:5px 7px;font-size:.75rem;min-height:32px}.compactSwitch{padding:4px 7px;font-size:.74rem;justify-content:center;min-height:32px}
+      .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.row button{width:100%}
+      .syncActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.syncActions button{width:100%;font-size:.86rem}
+      .selectorPanel{padding:8px;margin:7px 0}.selectorPanelHeader{display:grid;grid-template-columns:1fr;gap:7px;align-items:stretch}.selectorActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.selectorActions .miniBtn{width:100%;padding:7px 4px;font-size:.72rem}
+      .checkList{display:flex;gap:5px;overflow-x:auto;padding-bottom:2px;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}.checkItem{flex:0 0 auto;border-radius:999px;padding:7px 9px;font-size:.79rem;white-space:nowrap}
+      .indexSelector .checkList{display:flex;flex-wrap:wrap;overflow:visible}.indexSelector .checkItem{padding:5px 7px}
+      .legend,.chartLegend{gap:6px;font-size:.75rem}.legendHelp{padding:7px}.key{align-items:center}
+      .gradientGrid{grid-template-columns:1fr;gap:9px}.gradientCard{padding:9px}.gradientHead{display:grid;grid-template-columns:1fr;gap:2px}
       .svgBox{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}.svgBox svg{display:block;width:100%;height:auto}
-      .gradientCard .svgBox svg{min-width:720px}#scatterSvg svg{min-width:920px}
-      .tableWrap{max-height:440px}.tableWrap table{min-width:720px}
+      .gradientCard .svgBox svg{min-width:680px}#scatterSvg svg{min-width:860px}
+      .tableWrap{max-height:420px;border-radius:12px}.tableWrap table{min-width:640px}.comparisonTable{min-width:980px!important}
+      th,td{padding:7px 6px}.small{font-size:.80rem}.muted{line-height:1.35}
       .miniList{gap:7px}.miniItem{padding:8px}.chartTooltip{max-width:min(310px,calc(100vw - 18px));font-size:.82rem}
+      .mobileOnly{display:block}.desktopOnly{display:none!important}
     }
     @media(max-width:420px){.summary{grid-template-columns:1fr}.selectorActions{grid-template-columns:1fr}.tab{font-size:.86rem}.gradientCard .svgBox svg{min-width:690px}#scatterSvg svg{min-width:880px}}
     @media print{header,.tabs,.noPrint,button{display:none!important}main{padding:0}.card{box-shadow:none;break-inside:avoid}.view{display:block!important}.tableWrap{max-height:none;overflow:visible}}
@@ -163,8 +183,9 @@
 
   <section id="gradients" class="view">
     <div class="card">
-      <div class="toolbar"><h2 style="margin:0" class="grow">Visualisation des gradients</h2><label class="small muted">Strate analysée</label><select id="analysisStratum"></select><label class="small muted">Étiquettes espèces</label><select id="gradientLabelMode"><option value="hover" selected>Survol / clic</option><option value="short">Abrégées</option><option value="initials">Initiales</option><option value="none">Masquées</option></select><label class="switch small"><input type="checkbox" class="colorBlindToggle">Palette daltoniens</label><button class="secondary miniBtn" id="exportGradientsPng">Exporter PNG</button></div>
+      <div class="toolbar"><h2 style="margin:0" class="grow">Visualisation des gradients</h2><label class="small muted">Strate analysée</label><select id="analysisStratum"></select><label class="small muted">Étiquettes espèces</label><select id="gradientLabelMode"><option value="hover" selected>Survol / clic</option><option value="short">Abrégées</option><option value="initials">Initiales</option><option value="none">Masquées</option></select><label class="switch compactSwitch small"><input type="checkbox" class="colorBlindToggle">Palette daltoniens</label><button class="secondary miniBtn" id="exportGradientsPng">Exporter PNG</button></div>
       <div class="selectorPanel noPrint"><div class="selectorPanelHeader"><strong class="small">Relevés affichés</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="gradient" data-select-action="active">Actif seul</button><button class="ghost miniBtn" data-kind="gradient" data-select-action="all">Tout afficher</button><button class="ghost miniBtn" data-kind="gradient" data-select-action="none">Aucun</button></div></div><div id="gradientReleveChecks" class="checkList"></div></div>
+      <div class="selectorPanel indexSelector noPrint"><div class="filterTitle"><strong class="small">Indices d’Ellenberg affichés</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="gradientIndex" data-select-action="all">Tout</button><button class="ghost miniBtn" data-kind="gradientIndex" data-select-action="common">Principaux</button></div></div><div id="gradientIndexChecks" class="checkList"></div></div>
       <div class="legend legendHelp"><span class="key"><span class="pointLegend" style="color:#2f6b3e"></span>Espèce</span><span class="key"><span class="lineLegend" style="color:#2f6b3e"></span>Moyenne pondérée</span><span class="key"><span class="lineLegend dashed" style="color:#2f6b3e"></span>Moyenne simple</span><span class="key"><span class="bandLegend" style="color:#2f6b3e"></span>± écart-type pondéré</span></div>
       <div id="gradientCharts" class="gradientGrid" style="margin-top:14px"></div>
     </div>
@@ -173,7 +194,7 @@
   <section id="scatter" class="view">
     <div class="split">
       <div class="card">
-        <div class="toolbar"><h2 class="grow" style="margin:0">Ecogrammes</h2><label class="switch small"><input type="checkbox" class="colorBlindToggle">Palette daltoniens</label><button class="secondary miniBtn" id="exportScatterPng">Exporter PNG</button></div>
+        <div class="toolbar"><h2 class="grow" style="margin:0">Ecogrammes</h2><label class="switch compactSwitch small"><input type="checkbox" class="colorBlindToggle">Palette daltoniens</label><button class="secondary miniBtn" id="exportScatterPng">Exporter PNG</button></div>
         <div class="toolbar">
           <label class="small muted">Type</label><select id="scatterMode"><option value="species">Espèces des relevés sélectionnés</option><option value="releves">Moyennes des relevés + enveloppe floristique</option></select>
           <label class="small muted">Axe X</label><select id="xGrad"></select>
@@ -197,7 +218,8 @@
   <section id="compare" class="view">
     <div class="card">
       <div class="toolbar"><h2 class="grow" style="margin:0">Comparaison écologique des relevés</h2><label class="small muted">Strate</label><select id="compareStratum"></select></div>
-      <div class="tableWrap"><table id="compareTable"></table></div>
+      <div class="selectorPanel indexSelector noPrint"><div class="filterTitle"><strong class="small">Indices affichés dans le tableau</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="all">Tout</button><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="common">Principaux</button><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="none">Aucun</button></div></div><div id="compareIndexChecks" class="checkList"></div></div>
+      <div class="tableWrap compactTable"><table id="compareTable" class="comparisonTable"></table></div>
     </div>
   </section>
 
@@ -211,15 +233,15 @@
           <button class="secondary" id="saveGoogleClientId">Enregistrer le Client ID</button>
         </div>
         <div id="googleSyncStatus" class="syncStatus">Synchronisation Google non configurée.</div>
-        <div class="row noPrint">
+        <div class="syncActions noPrint">
           <button id="googleSignIn">Se connecter à Google</button>
           <button class="secondary" id="googleEnsureSheet">Créer / retrouver le Google Sheet</button>
-          <button class="secondary" id="googlePush">Envoyer vers Google Sheet</button>
-          <button class="secondary" id="googlePull">Charger les relevés depuis Google Sheet</button>
+          <button class="secondary" id="googlePush">Fusionner vers Google Sheet</button>
+          <button class="secondary" id="googlePull">Fusionner depuis Google Sheet</button>
           <button class="ghost" id="googleOpenSheet">Ouvrir le Google Sheet</button>
           <button class="ghost" id="googleForgetSheet">Oublier la liaison</button>
         </div>
-        <p class="small muted"><strong>Chargement multi-appareils :</strong> utiliser “Charger les relevés depuis Google Sheet” pour récupérer sur ce téléphone les relevés déjà enregistrés depuis l’ordinateur. Prévoir aussi une sauvegarde JSON régulière.</p>
+        <p class="syncHint"><strong>Synchronisation sécurisée :</strong> les relevés locaux et distants sont fusionnés par identifiant et date de modification ; les relevés non présents sur cet appareil ne sont plus supprimés du Google Sheet.</p>
       </div>
       <div class="card">
         <h2>Installation smartphone</h2>
@@ -267,13 +289,14 @@ const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
+const APP_VERSION = "v13_sync_mobile_indices";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 function norm(s){return (s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();}
 TAXA.forEach(t=>{t.nn=norm(t.n); t.ns=norm(t.s); t.q=(t.nn+" "+t.ns).trim();});
 function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
 function today(){return new Date().toISOString().slice(0,10)}
-function blankReleve(name="Nouveau relevé"){return {id:uid(),name,date:today(),observer:"",location:"",area:"",notes:"",rows:[]}}
+function blankReleve(name="Nouveau relevé"){const now=new Date().toISOString();return {id:uid(),name,date:today(),observer:"",location:"",area:"",notes:"",rows:[],created_at:now,updated_at:now,device_id:getDeviceId()}}
 let state = loadState();
 let selectedTaxon = null;
 let syncState = loadSyncState();
@@ -281,8 +304,76 @@ let googleAccessToken = null;
 let googleTokenExpiry = 0;
 let googleTokenClient = null;
 let suppressDirty = false;
+function getDeviceId(){
+  let id=localStorage.getItem("botano_baseflor_device_id_v01");
+  if(!id){id="dev_"+uid(); localStorage.setItem("botano_baseflor_device_id_v01",id);}
+  return id;
+}
+function normalizeDateValue(v){const d=v?new Date(v):null; return d && !Number.isNaN(d.getTime()) ? d.toISOString() : "1970-01-01T00:00:00.000Z";}
+function normalizeReleveForSync(r){
+  if(!r.id)r.id=uid();
+  if(!Array.isArray(r.rows))r.rows=[];
+  r.created_at=normalizeDateValue(r.created_at||r.date);
+  r.updated_at=normalizeDateValue(r.updated_at||r.created_at);
+  if(!r.device_id)r.device_id="legacy";
+  r.rows.forEach(row=>{if(!row.line_id)row.line_id=uid();});
+  return r;
+}
+function normalizeAppStateForSync(s){
+  if(!s || !Array.isArray(s.releves))s={selectedId:null,releves:[]};
+  s.releves.forEach(normalizeReleveForSync);
+  if(!s.selectedId && s.releves[0])s.selectedId=s.releves[0].id;
+  if(!Array.isArray(s.gradientSelectedIds))s.gradientSelectedIds=s.selectedId?[s.selectedId]:[];
+  if(!Array.isArray(s.scatterSelectedIds))s.scatterSelectedIds=s.selectedId?[s.selectedId]:[];
+  if(!Array.isArray(s.visibleGradientKeys))s.visibleGradientKeys=GRADIENTS.map(g=>g.key);
+  if(!Array.isArray(s.compareGradientKeys))s.compareGradientKeys=GRADIENTS.map(g=>g.key);
+  return s;
+}
+function touchReleve(r){if(!r)return; normalizeReleveForSync(r); r.updated_at=new Date().toISOString(); r.device_id=getDeviceId();}
+function stateClone(s=state){return JSON.parse(JSON.stringify(s));}
+function comparableReleve(r){const x=JSON.parse(JSON.stringify(r||{})); delete x.updated_at; delete x.device_id; return x;}
+function sameReleveContent(a,b){return JSON.stringify(comparableReleve(a))===JSON.stringify(comparableReleve(b));}
+function mergeAppStates(local, remote){
+  local=normalizeAppStateForSync(stateClone(local));
+  remote=normalizeAppStateForSync(stateClone(remote||{selectedId:null,releves:[]}));
+  const merged=new Map();
+  remote.releves.forEach(r=>merged.set(r.id,stateClone(r)));
+  const lastSync=syncState.lastSyncAt?new Date(syncState.lastSyncAt).getTime():0;
+  const conflicts=[];
+  local.releves.forEach(lr=>{
+    const rr=merged.get(lr.id);
+    if(!rr){merged.set(lr.id,stateClone(lr)); return;}
+    if(sameReleveContent(lr,rr)){merged.set(lr.id, new Date(normalizeDateValue(lr.updated_at))>=new Date(normalizeDateValue(rr.updated_at))?stateClone(lr):stateClone(rr)); return;}
+    const lt=new Date(normalizeDateValue(lr.updated_at)).getTime();
+    const rt=new Date(normalizeDateValue(rr.updated_at)).getTime();
+    const localChangedAfterSync=lastSync && lt>lastSync;
+    const remoteChangedAfterSync=lastSync && rt>lastSync;
+    if(localChangedAfterSync && remoteChangedAfterSync){
+      const copy=stateClone(lr);
+      copy.id=uid();
+      copy.name=(copy.name||"Relevé")+" — conflit local";
+      copy.updated_at=new Date().toISOString();
+      copy.device_id=getDeviceId();
+      merged.set(rr.id,stateClone(rr));
+      merged.set(copy.id,copy);
+      conflicts.push(copy.name);
+    }else{
+      merged.set(lr.id, lt>=rt?stateClone(lr):stateClone(rr));
+    }
+  });
+  const out=stateClone(local);
+  out.releves=[...merged.values()].sort((a,b)=>(a.name||"").localeCompare(b.name||"", "fr"));
+  out.selectedId=(local.selectedId && out.releves.some(r=>r.id===local.selectedId))?local.selectedId:(out.releves[0]?.id||null);
+  out.gradientSelectedIds=(local.gradientSelectedIds||[]).filter(id=>out.releves.some(r=>r.id===id));
+  out.scatterSelectedIds=(local.scatterSelectedIds||[]).filter(id=>out.releves.some(r=>r.id===id));
+  if(!out.gradientSelectedIds.length && out.selectedId)out.gradientSelectedIds=[out.selectedId];
+  if(!out.scatterSelectedIds.length && out.selectedId)out.scatterSelectedIds=[out.selectedId];
+  out._last_merge_conflicts=conflicts;
+  return out;
+}
+function setStateWithoutDirty(next){suppressDirty=true; state=normalizeAppStateForSync(next); localStorage.setItem(STORE_KEY, JSON.stringify(state)); suppressDirty=false;}
 function loadState(){
-  try{const s=JSON.parse(localStorage.getItem(STORE_KEY)); if(s && Array.isArray(s.releves)) return s;}catch(e){}
+  try{const s=JSON.parse(localStorage.getItem(STORE_KEY)); if(s && Array.isArray(s.releves)) return normalizeAppStateForSync(s);}catch(e){}
   const r=blankReleve("Relevé 1"); return {selectedId:r.id,releves:[r]};
 }
 function loadSyncState(){
@@ -295,7 +386,7 @@ function markUnsynced(){
     syncState.dirty = true; saveSyncState(); renderSyncPanel?.();
   }
 }
-function save(){localStorage.setItem(STORE_KEY, JSON.stringify(state)); markUnsynced();}
+function save(){state=normalizeAppStateForSync(state); localStorage.setItem(STORE_KEY, JSON.stringify(state)); markUnsynced();}
 function current(){let r=state.releves.find(x=>x.id===state.selectedId); if(!r){r=state.releves[0]||blankReleve("Relevé 1"); if(!state.releves.length)state.releves.push(r); state.selectedId=r.id;} return r;}
 function esc(s){return (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
 function fmt(x,d=2){return x==null||Number.isNaN(x)?"—":Number(x).toLocaleString("fr-FR",{maximumFractionDigits:d,minimumFractionDigits:0});}
@@ -324,7 +415,7 @@ function initStatic(){
   fillSelect("xGrad", GRADIENTS.map((g,i)=>({value:i,label:g.label})), 4);
   fillSelect("yGrad", GRADIENTS.map((g,i)=>({value:i,label:g.label})), 6);
 }
-function renderAll(){ensureSelections(); syncColorBlindToggles(); renderReleveSelect(); renderMeta(); renderRows(); renderSummary(); renderSelectionControls(); renderGradientCharts(); renderScatter(); renderCompare(); renderSyncPanel();}
+function renderAll(){ensureSelections(); syncColorBlindToggles(); renderReleveSelect(); renderMeta(); renderRows(); renderSummary(); renderSelectionControls(); renderIndexControls(); renderGradientCharts(); renderScatter(); renderCompare(); renderSyncPanel();}
 function renderReleveSelect(){const sel=document.getElementById("releveSelect"); sel.innerHTML=state.releves.map(r=>`<option value="${r.id}">${esc(r.name||"Sans nom")} · ${r.rows.length} taxons</option>`).join(""); sel.value=current().id;}
 const RELEVE_PALETTE=["#1f77b4","#d62728","#2ca02c","#9467bd","#ff7f0e","#17becf","#8c564b","#e377c2","#4c78a8","#b279a2","#59a14f","#f28e2b"];
 const RELEVE_PALETTE_CB=["#0072B2","#D55E00","#009E73","#CC79A7","#E69F00","#56B4E9","#F0E442","#000000","#7F3C8D","#11A579","#3969AC","#F2B701"];
@@ -337,6 +428,19 @@ function selectedReleves(kind){ensureSelections(); const ids=new Set(state[kind+
 function syncColorBlindToggles(){document.querySelectorAll(".colorBlindToggle").forEach(ch=>{ch.checked=!!state.colorBlind;});}
 function renderSelectionControls(){ensureSelections(); renderSelectionControl("gradient","gradientReleveChecks"); renderSelectionControl("scatter","scatterReleveChecks");}
 function renderSelectionControl(kind,boxId){const box=document.getElementById(boxId); if(!box)return; const ids=new Set(state[kind+"SelectedIds"]||[]); box.innerHTML=state.releves.map((r,i)=>`<label class="checkItem"><input class="releveCheck" type="checkbox" data-kind="${kind}" value="${r.id}" ${ids.has(r.id)?"checked":""}><span class="colorDot" style="background:${colorFor(i)}"></span><span>${esc(releveLabel(r))}</span></label>`).join("") || `<span class="small muted">Aucun relevé disponible.</span>`;}
+function gradientIndexDefaults(kind){return kind==="common"?["lumiere","humidite_edaphique","reaction_sol_ph","niveau_trophique"]:GRADIENTS.map(g=>g.key);}
+function selectedGradientIndices(keyName){
+  const keys=Array.isArray(state[keyName])?state[keyName]:GRADIENTS.map(g=>g.key);
+  const set=new Set(keys);
+  return GRADIENTS.map((g,i)=>set.has(g.key)?i:null).filter(i=>i!==null);
+}
+function renderIndexControls(){renderIndexControl("visibleGradientKeys","gradientIndexChecks"); renderIndexControl("compareGradientKeys","compareIndexChecks");}
+function renderIndexControl(keyName,boxId){
+  const box=document.getElementById(boxId); if(!box)return;
+  if(!Array.isArray(state[keyName]))state[keyName]=GRADIENTS.map(g=>g.key);
+  const chosen=new Set(state[keyName]);
+  box.innerHTML=GRADIENTS.map(g=>`<label class="checkItem"><input class="indexCheck" type="checkbox" data-keyname="${keyName}" value="${g.key}" ${chosen.has(g.key)?"checked":""}><span>${esc(g.short)}</span><span class="small muted">${esc(g.label)}</span></label>`).join("");
+}
 function legendFor(groups){return groups.map(grp=>`<span class="key"><span class="colorDot" style="background:${releveColor(grp.rel)}"></span>${esc(releveLabel(grp.rel))}</span>`).join("");}
 function tipAttr(txt){return `class="tipPoint" tabindex="0" data-tip="${esc(String(txt||"").replace(/\s+/g," "))}"`;}
 
@@ -356,7 +460,7 @@ function renderSummary(){const r=current(); const rows=rowsWithTaxa(r); const co
 function renderGradientCharts(){const filter=document.getElementById("analysisStratum").value||"Toutes strates"; const labelMode=(document.getElementById("gradientLabelMode")?.value)||"hover"; const selected=selectedReleves("gradient"); const groups=selected.map(rel=>({rel,idx:releveIndex(rel),rows:rowsWithTaxa(rel,filter),stats:stats(rel,filter)})).filter(g=>g.rows.length);
  const legend=document.getElementById("gradientLegend"); if(legend)legend.innerHTML=legendFor(groups);
  const box=document.getElementById("gradientCharts"); if(!groups.length){box.innerHTML=`<div class="empty full">Aucune donnée pour la strate et les relevés sélectionnés.</div>`;return;}
- box.innerHTML=GRADIENTS.map((g,i)=>gradientCard(i,groups,labelMode)).join("");
+ const indices=selectedGradientIndices("visibleGradientKeys"); box.innerHTML=indices.map(i=>gradientCard(i,groups,labelMode)).join("") || `<div class="empty full">Aucun indice sélectionné.</div>`;
 }
 function scale(v,g,w=560,pad=42){return pad+(v-g.min)/(g.max-g.min)*(w-2*pad)}
 function gradientTerms(g){return (GRADIENT_TERMS[g.key]||[{v:g.min,t:g.low},{v:g.max,t:g.high}]).slice(0,5)}
@@ -419,20 +523,32 @@ function renderScatter(){let mode=scatterMode.value; if(mode==="species_active"|
  document.getElementById("scatterInfo").innerHTML = pts.slice(0,16).map(p=>`<div class="miniItem"><strong>${esc(p.label)}</strong><span class="small muted">${esc(gx.short)}=${fmt(p.x)} · ${esc(gy.short)}=${fmt(p.y)} · ${esc(p.sub)}</span></div>`).join("") || `<div class="empty">Aucune donnée.</div>`;
 }
 
-function renderCompare(){const filter=compareStratum.value||"Toutes strates"; const table=document.getElementById("compareTable"); const head=`<thead><tr><th>Relevé</th><th class="num">Taxons</th>`+GRADIENTS.map(g=>`<th class="num">${esc(g.short)}</th>`).join("")+`</tr></thead>`; const body=state.releves.map(r=>{const st=stats(r,filter); return `<tr><td><strong>${esc(r.name||"Sans nom")}</strong><br><span class="small muted">${esc(r.location||"")}</span></td><td class="num">${rowsWithTaxa(r,filter).length}</td>`+st.map(x=>`<td class="num" title="Moyenne pondérée ; moyenne simple ${fmt(x.mean)} ; écart-type pondéré ${fmt(x.wsd)}">${fmt(x.wmean)}</td>`).join("")+`</tr>`}).join(""); table.innerHTML=head+`<tbody>${body}</tbody>`;}
+function renderCompare(){
+  const filter=compareStratum.value||"Toutes strates";
+  const table=document.getElementById("compareTable");
+  const indices=selectedGradientIndices("compareGradientKeys");
+  if(!indices.length){table.innerHTML=`<tbody><tr><td><div class="empty">Aucun indice sélectionné.</div></td></tr></tbody>`;return;}
+  const head1=`<thead><tr><th rowspan="2" class="relCell">Relevé</th><th rowspan="2" class="num">Taxons</th>`+indices.map(i=>`<th colspan="4" class="num groupSep">${esc(GRADIENTS[i].short)} · ${esc(GRADIENTS[i].label)}</th>`).join("")+`</tr>`;
+  const head2=`<tr>`+indices.map(()=>`<th class="num groupSep" title="Moyenne simple">Moy.</th><th class="num" title="Moyenne pondérée par recouvrement">Pond.</th><th class="num" title="Écart-type simple">σ</th><th class="num" title="Écart-type pondéré">σp</th>`).join("")+`</tr></thead>`;
+  const body=state.releves.map(r=>{
+    const st=stats(r,filter);
+    return `<tr><td class="relCell"><strong>${esc(r.name||"Sans nom")}</strong><br><span class="small muted">${esc(r.location||"")}</span></td><td class="num">${rowsWithTaxa(r,filter).length}</td>`+indices.map(i=>{const x=st[i]; return `<td class="num groupSep">${fmt(x.mean)}</td><td class="num"><strong>${fmt(x.wmean)}</strong></td><td class="num">${fmt(x.sd)}</td><td class="num">${fmt(x.wsd)}</td>`;}).join("")+`</tr>`;
+  }).join("");
+  table.innerHTML=head1+head2+`<tbody>${body}</tbody>`;
+}
 function searchTaxa(q){q=norm(q); if(q.length<2)return[]; const terms=q.split(" ").filter(Boolean); const res=[]; for(const t of TAXA){let score=999; if(t.nn.startsWith(q))score=0; else if(t.ns.startsWith(q))score=1; else if(terms.every(x=>t.nn.includes(x)))score=2; else if(terms.every(x=>t.q.includes(x)))score=3; else if(t.q.includes(q))score=5; if(score<999)res.push([score,t]);} return res.sort((a,b)=>a[0]-b[0] || a[1].n.localeCompare(b[1].n)).slice(0,14).map(x=>x[1]);}
 function showSuggestions(items){const box=suggestions; if(!items.length){box.classList.remove("open");box.innerHTML="";return;} box.innerHTML=items.map(t=>`<div class="suggestion" data-id="${t.id}"><b>${esc(t.n)}</b><span>${esc(t.s||"")}</span></div>`).join(""); box.classList.add("open");}
 function selectTaxon(id){selectedTaxon=byId.get(Number(id)); if(!selectedTaxon)return; speciesSearch.value=selectedTaxon.n; if(selectedTaxon.id===-1 && rowStratum)rowStratum.value="Sans végétation"; document.getElementById("selectedTaxon").innerHTML=`Taxon sélectionné : <strong>${esc(selectedTaxon.n)}</strong> <span class="muted">${esc(selectedTaxon.s||"")}</span>`; suggestions.classList.remove("open");}
-function addSelected(){if(!selectedTaxon && norm(speciesSearch.value)==="sol nu")selectedTaxon=byId.get(-1); if(!selectedTaxon){alert("Sélectionner une espèce ou « sol nu » dans la liste de recherche.");return;} const r=current(); const mode=coverMode.value; const cover=mode==="pct"?parseFloat(pctValue.value||0):bbValue.value; const stratum=selectedTaxon.id===-1?"Sans végétation":rowStratum.value; r.rows.push({tid:selectedTaxon.id,stratum,mode,cover}); selectedTaxon=null; speciesSearch.value=""; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; save(); renderAll();}
-window.removeRow=function(idx){current().rows.splice(idx,1); save(); renderAll();}
-window.moveRow=function(idx,delta){const rows=current().rows; const j=idx+delta; if(j<0||j>=rows.length)return; [rows[idx],rows[j]]=[rows[j],rows[idx]]; save(); renderAll();}
-function updateMeta(){const r=current(); r.name=relName.value; r.date=relDate.value; r.observer=relObserver.value; r.location=relLocation.value; r.area=relArea.value; r.notes=relNotes.value; save(); renderReleveSelect(); renderSummary(); renderCompare(); renderScatter();}
+function addSelected(){if(!selectedTaxon && norm(speciesSearch.value)==="sol nu")selectedTaxon=byId.get(-1); if(!selectedTaxon){alert("Sélectionner une espèce ou « sol nu » dans la liste de recherche.");return;} const r=current(); const mode=coverMode.value; const cover=mode==="pct"?parseFloat(pctValue.value||0):bbValue.value; const stratum=selectedTaxon.id===-1?"Sans végétation":rowStratum.value; r.rows.push({line_id:uid(),tid:selectedTaxon.id,stratum,mode,cover}); touchReleve(r); selectedTaxon=null; speciesSearch.value=""; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; save(); renderAll();}
+window.removeRow=function(idx){const r=current(); r.rows.splice(idx,1); touchReleve(r); save(); renderAll();}
+window.moveRow=function(idx,delta){const r=current(); const rows=r.rows; const j=idx+delta; if(j<0||j>=rows.length)return; [rows[idx],rows[j]]=[rows[j],rows[idx]]; touchReleve(r); save(); renderAll();}
+function updateMeta(){const r=current(); r.name=relName.value; r.date=relDate.value; r.observer=relObserver.value; r.location=relLocation.value; r.area=relArea.value; r.notes=relNotes.value; touchReleve(r); save(); renderReleveSelect(); renderSummary(); renderCompare(); renderScatter();}
 function download(filename, text, mime="application/json"){const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:mime})); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function rowsCsv(){const lines=[["releve_id","releve_nom","date","observateur","localisation","surface","taxon_id","nom_scientifique","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>r.rows.forEach(row=>{const t=byId.get(row.tid)||{v:[]}; lines.push([r.id,r.name,r.date,r.observer,r.location,r.area,row.tid,t.n,t.s,row.stratum,row.mode,row.cover,pct(row),...GRADIENTS.map((g,i)=>t.v[i])]);})); return lines.map(line=>line.map(v=>`"${(v??"").toString().replace(/"/g,'""')}"`).join(";")).join("\n");}
 
 
 function safeDate(s){try{return new Date(s).toLocaleString("fr-FR");}catch(e){return s||"—";}}
-function remoteJsonSnapshot(){const clone=JSON.parse(JSON.stringify(state)); clone._application="Application de visualisation des relevés botaniques"; clone._sync_exported_at=new Date().toISOString(); return clone;}
+function remoteJsonSnapshot(src=state){const clone=normalizeAppStateForSync(stateClone(src)); clone._application="Application de visualisation des relevés botaniques"; clone._version=APP_VERSION; clone._sync_exported_at=new Date().toISOString(); return clone;}
 function syncSetMessage(msg,cls="warn"){const el=document.getElementById("googleSyncStatus"); if(!el)return; el.className="syncStatus "+cls; el.innerHTML=msg;}
 function renderSyncPanel(){
   const client=document.getElementById("googleClientId"); if(client) client.value=syncState.clientId||"";
@@ -441,7 +557,7 @@ function renderSyncPanel(){
   else parts.push("<strong>Client ID enregistré.</strong>");
   if(syncState.spreadsheetId) parts.push(`Google Sheet lié : <strong>${esc(syncState.sheetName||GOOGLE_SHEET_NAME)}</strong>.`);
   else parts.push("Aucun Google Sheet encore lié.");
-  if(syncState.lastSyncAt) parts.push(`Dernière synchronisation : <strong>${esc(safeDate(syncState.lastSyncAt))}</strong>.`);
+  if(syncState.lastSyncAt) parts.push(`Dernière synchronisation : <strong>${esc(safeDate(syncState.lastSyncAt))}</strong>.`); parts.push(`Appareil : <strong>${esc(getDeviceId().slice(0,12))}</strong>. Mode fusion non destructive.`);
   if(syncState.dirty) parts.push("<strong>Modifications locales non synchronisées.</strong>");
   const cls=!syncState.clientId?"warn":(syncState.dirty?"warn":"ok");
   syncSetMessage(parts.join(" "), cls);
@@ -488,7 +604,7 @@ async function findGoogleSheet(){
   return (data.files||[])[0]||null;
 }
 async function createGoogleSheet(){
-  const body={properties:{title:GOOGLE_SHEET_NAME},sheets:["releves","lignes_releve","synthese","parametres","etat_application"].map(title=>({properties:{title}}))};
+  const body={properties:{title:GOOGLE_SHEET_NAME},sheets:["releves","lignes_releve","synthese","parametres","etat_application","sauvegardes"].map(title=>({properties:{title}}))};
   const data=await googleApiFetch("https://sheets.googleapis.com/v4/spreadsheets",{method:"POST",body:JSON.stringify(body)});
   return {id:data.spreadsheetId,name:GOOGLE_SHEET_NAME,webViewLink:data.spreadsheetUrl};
 }
@@ -496,7 +612,7 @@ async function ensureGoogleSheets(spreadsheetId){
   const meta=await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`);
   const have=new Set((meta.sheets||[]).map(s=>s.properties.title));
   const requests=[];
-  ["releves","lignes_releve","synthese","parametres","etat_application"].forEach(title=>{if(!have.has(title))requests.push({addSheet:{properties:{title}}});});
+  ["releves","lignes_releve","synthese","parametres","etat_application","sauvegardes"].forEach(title=>{if(!have.has(title))requests.push({addSheet:{properties:{title}}});});
   if(requests.length) await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,{method:"POST",body:JSON.stringify({requests})});
 }
 async function ensureGoogleSheetLinked(createIfMissing=true){
@@ -512,43 +628,91 @@ async function ensureGoogleSheetLinked(createIfMissing=true){
   renderSyncPanel();
   return file.id;
 }
-function sheetRowsReleves(){return [["releve_id","nom","date","observateur","localisation","surface","notes","nb_lignes"]].concat(state.releves.map(r=>[r.id,r.name||"",r.date||"",r.observer||"",r.location||"",r.area||"",r.notes||"",(r.rows||[]).length]));}
-function sheetRowsLignes(){const rows=[["ligne_id","releve_id","releve_nom","taxon_id","taxon","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule","sol_nu",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>(r.rows||[]).forEach((row,i)=>{const t=byId.get(row.tid)||{n:"",s:"",v:[]}; rows.push([`${r.id}:${i+1}`,r.id,r.name||"",row.tid??"",t.n||"",t.s||"",row.stratum||"",row.mode||"",row.cover??"",pct(row),row.tid===-1?"oui":"",...GRADIENTS.map((g,j)=>t.v?.[j]??"")]);})); return rows;}
+function sheetRowsReleves(src=state){return [["releve_id","nom","date","observateur","localisation","surface","notes","nb_lignes","created_at","updated_at","device_id"]].concat((src.releves||[]).map(r=>[r.id,r.name||"",r.date||"",r.observer||"",r.location||"",r.area||"",r.notes||"",(r.rows||[]).length,r.created_at||"",r.updated_at||"",r.device_id||""]));}
+function sheetRowsLignes(src=state){const rows=[["ligne_id","releve_id","releve_nom","taxon_id","taxon","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule","sol_nu",...GRADIENTS.map(g=>g.label)]]; (src.releves||[]).forEach(r=>(r.rows||[]).forEach((row,i)=>{const t=byId.get(row.tid)||{n:"",s:"",v:[]}; rows.push([row.line_id||`${r.id}:${i+1}`,r.id,r.name||"",row.tid??"",t.n||"",t.s||"",row.stratum||"",row.mode||"",row.cover??"",pct(row),row.tid===-1?"oui":"",...GRADIENTS.map((g,j)=>t.v?.[j]??"")]);})); return rows;}
 function sheetRowsSynthese(){const rows=[["releve_id","releve_nom","strate","gradient","code","moyenne_simple","moyenne_ponderee","ecart_type_simple","ecart_type_pondere","nb_taxons_utilises","nb_taxons_sans_indice","recouvrement_utilise"]]; state.releves.forEach(r=>stats(r,"Toutes strates").forEach(x=>rows.push([r.id,r.name||"","Toutes strates",x.g.label,x.g.short,x.mean??"",x.wmean??"",x.sd??"",x.wsd??"",x.n,x.missing,x.sw??""]))); return rows;}
-function sheetRowsParametres(){return [["cle","valeur"],["version_application","v12_stable_light"],["source_indices","Baseflor simplifiée"],["conversion_i","0.01"],["conversion_r","0.1"],["conversion_+","0.5"],["conversion_1","2.5"],["conversion_2","15"],["conversion_3","37.5"],["conversion_4","62.5"],["conversion_5","87.5"],["exporte_le",new Date().toISOString()]];}
-function sheetRowsEtat(){const json=JSON.stringify(remoteJsonSnapshot()); const size=35000; const chunks=[]; for(let i=0;i<json.length;i+=size)chunks.push(json.slice(i,i+size)); return [["chunk_index","chunk_count","json_chunk"]].concat(chunks.map((c,i)=>[i+1,chunks.length,c]));}
-async function pushToGoogleSheet(){
-  const id=await ensureGoogleSheetLinked(true);
-  syncSetMessage("Envoi des relevés vers Google Sheet…","warn");
+function sheetRowsParametres(){return [["cle","valeur"],["version_application",APP_VERSION],["source_indices","Baseflor simplifiée"],["mode_synchronisation","fusion_non_destructive_par_releve_id_et_updated_at"],["conversion_i","0.01"],["conversion_r","0.1"],["conversion_+","0.5"],["conversion_1","2.5"],["conversion_2","15"],["conversion_3","37.5"],["conversion_4","62.5"],["conversion_5","87.5"],["exporte_le",new Date().toISOString()]];}
+function sheetRowsEtat(src=state){const json=JSON.stringify(remoteJsonSnapshot(src)); const size=35000; const chunks=[]; for(let i=0;i<json.length;i+=size)chunks.push(json.slice(i,i+size)); return [["chunk_index","chunk_count","json_chunk"]].concat(chunks.map((c,i)=>[i+1,chunks.length,c]));}
+
+async function readRemoteStateFromGoogleSheet(id){
+  try{
+    const data=await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/etat_application!A2:C`);
+    const rows=data.values||[];
+    if(rows.length){
+      rows.sort((a,b)=>(parseInt(a[0]||"0",10)||0)-(parseInt(b[0]||"0",10)||0));
+      const json=rows.map(r=>r[2]||"").join("");
+      const remote=JSON.parse(json);
+      if(remote && Array.isArray(remote.releves))return normalizeAppStateForSync(remote);
+    }
+  }catch(err){console.warn("Lecture etat_application impossible",err);}
+  return await reconstructStateFromSheetTables(id);
+}
+async function reconstructStateFromSheetTables(id){
+  const [relData,lineData]=await Promise.all([
+    googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/releves!A1:K`).catch(()=>({values:[]})),
+    googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/lignes_releve!A1:K`).catch(()=>({values:[]}))
+  ]);
+  const relRows=relData.values||[], lineRows=lineData.values||[];
+  if(relRows.length<2)return null;
+  const relHeader=relRows[0].map(x=>norm(x).replace(/ /g,"_"));
+  const idx=name=>relHeader.indexOf(name);
+  const get=(r,name)=>{const i=idx(name); return i>=0?(r[i]||""):"";};
+  const map=new Map();
+  relRows.slice(1).forEach(row=>{const id=get(row,"releve_id")||uid(); const rel={id,name:get(row,"nom")||"Sans nom",date:get(row,"date"),observer:get(row,"observateur"),location:get(row,"localisation"),area:get(row,"surface"),notes:get(row,"notes"),created_at:get(row,"created_at"),updated_at:get(row,"updated_at"),device_id:get(row,"device_id"),rows:[]}; normalizeReleveForSync(rel); map.set(id,rel);});
+  if(lineRows.length>1){
+    const h=lineRows[0].map(x=>norm(x).replace(/ /g,"_")); const ix=name=>h.indexOf(name); const gv=(r,name)=>{const i=ix(name); return i>=0?(r[i]||""):"";};
+    lineRows.slice(1).forEach(row=>{const rid=gv(row,"releve_id"); const rel=map.get(rid); if(!rel)return; const tid=parseInt(gv(row,"taxon_id"),10); rel.rows.push({line_id:gv(row,"ligne_id")||uid(),tid:Number.isFinite(tid)?tid:null,stratum:gv(row,"strate"),mode:gv(row,"mode_recouvrement"),cover:gv(row,"recouvrement_saisi")});});
+  }
+  const releves=[...map.values()]; return normalizeAppStateForSync({selectedId:releves[0]?.id||null,releves});
+}
+async function appendBackupState(id, src, label="backup"){
+  if(!src || !Array.isArray(src.releves) || !src.releves.length)return;
+  const backupId="backup_"+new Date().toISOString().replace(/[:.]/g,"-");
+  const json=JSON.stringify(remoteJsonSnapshot(src)); const size=30000; const values=[];
+  values.push(["backup_id","date","type","part","parts","json_chunk"]);
+  const chunks=[]; for(let i=0;i<json.length;i+=size)chunks.push(json.slice(i,i+size));
+  chunks.forEach((c,i)=>values.push([backupId,new Date().toISOString(),label,i+1,chunks.length,c]));
+  try{await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/sauvegardes!A1:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{method:"POST",body:JSON.stringify({values})});}
+  catch(err){console.warn("Sauvegarde datée impossible",err);}
+}
+async function writeStateToGoogleSheet(id, src){
   const ranges=["releves","lignes_releve","synthese","parametres","etat_application"];
   await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchClear`,{method:"POST",body:JSON.stringify({ranges})});
   const data=[
-    {range:"releves!A1",values:sheetRowsReleves()},
-    {range:"lignes_releve!A1",values:sheetRowsLignes()},
-    {range:"synthese!A1",values:sheetRowsSynthese()},
+    {range:"releves!A1",values:sheetRowsReleves(src)},
+    {range:"lignes_releve!A1",values:sheetRowsLignes(src)},
+    {range:"synthese!A1",values:sheetRowsSynthese(src)},
     {range:"parametres!A1",values:sheetRowsParametres()},
-    {range:"etat_application!A1",values:sheetRowsEtat()}
+    {range:"etat_application!A1",values:sheetRowsEtat(src)}
   ];
   await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values:batchUpdate`,{method:"POST",body:JSON.stringify({valueInputOption:"RAW",data})});
-  syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderSyncPanel(); alert("Synchronisation vers Google Sheet terminée.");
+}
+async function pushToGoogleSheet(){
+  const id=await ensureGoogleSheetLinked(true);
+  syncSetMessage("Lecture du Google Sheet et fusion non destructive…","warn");
+  const remote=await readRemoteStateFromGoogleSheet(id);
+  const local=normalizeAppStateForSync(stateClone(state));
+  const merged=mergeAppStates(local, remote||{selectedId:null,releves:[]});
+  const msg=`Fusion vers Google Sheet : local ${local.releves.length} relevé(s), distant ${remote?.releves?.length||0}, résultat ${merged.releves.length}. ${merged._last_merge_conflicts?.length?"Conflit(s) conservé(s) en copie : "+merged._last_merge_conflicts.join(", "):""}\n\nContinuer ?`;
+  if(!confirm(msg)){renderSyncPanel(); return;}
+  if(remote)await appendBackupState(id, remote, "avant_fusion_vers_google_sheet");
+  await writeStateToGoogleSheet(id, merged);
+  delete merged._last_merge_conflicts;
+  setStateWithoutDirty(merged);
+  syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderAll(); alert("Fusion vers Google Sheet terminée sans suppression des relevés distants non présents localement.");
 }
 async function pullFromGoogleSheet(){
   const id=await ensureGoogleSheetLinked(true);
-  syncSetMessage("Récupération des relevés depuis Google Sheet…","warn");
-  const data=await googleApiFetch(`https://sheets.googleapis.com/v4/spreadsheets/${id}/values/etat_application!A2:C`);
-  const rows=data.values||[];
-  if(!rows.length) throw new Error("L’onglet etat_application ne contient pas encore de sauvegarde JSON.");
-  rows.sort((a,b)=>(parseInt(a[0]||"0",10)||0)-(parseInt(b[0]||"0",10)||0));
-  const json=rows.map(r=>r[2]||"").join("");
-  const remote=JSON.parse(json);
-  if(!remote.releves || !Array.isArray(remote.releves)) throw new Error("Le contenu distant n’est pas un état valide de l’application.");
-  if(!confirm("Remplacer les relevés locaux par ceux du Google Sheet ?")) {renderSyncPanel(); return;}
-  suppressDirty=true;
-  state=remote;
-  if(!state.selectedId && state.releves[0]) state.selectedId=state.releves[0].id;
-  localStorage.setItem(STORE_KEY, JSON.stringify(state));
-  suppressDirty=false;
-  syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderAll(); alert("Récupération depuis Google Sheet terminée.");
+  syncSetMessage("Récupération et fusion des relevés depuis Google Sheet…","warn");
+  const remote=await readRemoteStateFromGoogleSheet(id);
+  if(!remote || !remote.releves || !remote.releves.length) throw new Error("Aucun relevé distant lisible dans le Google Sheet.");
+  const local=normalizeAppStateForSync(stateClone(state));
+  const merged=mergeAppStates(local, remote);
+  const msg=`Fusion depuis Google Sheet : local ${local.releves.length} relevé(s), distant ${remote.releves.length}, résultat ${merged.releves.length}. ${merged._last_merge_conflicts?.length?"Conflit(s) conservé(s) en copie : "+merged._last_merge_conflicts.join(", "):""}\n\nAppliquer cette fusion localement ?`;
+  if(!confirm(msg)){renderSyncPanel(); return;}
+  delete merged._last_merge_conflicts;
+  setStateWithoutDirty(merged);
+  syncState.dirty=false; syncState.lastSyncAt=new Date().toISOString(); saveSyncState(); renderAll(); alert("Fusion depuis Google Sheet terminée.");
 }
 async function handleGoogleAction(action){
   try{
@@ -572,7 +736,7 @@ function bind(){
  document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.view).classList.add("active"); renderAll();}));
  releveSelect.addEventListener("change",e=>{state.selectedId=e.target.value; save(); renderAll();});
  newReleve.addEventListener("click",()=>{const r=blankReleve(`Relevé ${state.releves.length+1}`); state.releves.push(r); state.selectedId=r.id; state.gradientSelectedIds=[r.id]; state.scatterSelectedIds=[r.id]; save(); renderAll();});
- duplicateReleve.addEventListener("click",()=>{const src=JSON.parse(JSON.stringify(current())); src.id=uid(); src.name=(src.name||"Relevé")+" — copie"; state.releves.push(src); state.selectedId=src.id; state.gradientSelectedIds=[src.id]; state.scatterSelectedIds=[src.id]; save(); renderAll();});
+ duplicateReleve.addEventListener("click",()=>{const src=JSON.parse(JSON.stringify(current())); src.id=uid(); src.name=(src.name||"Relevé")+" — copie"; src.created_at=new Date().toISOString(); src.updated_at=src.created_at; src.device_id=getDeviceId(); (src.rows||[]).forEach(row=>row.line_id=uid()); state.releves.push(src); state.selectedId=src.id; state.gradientSelectedIds=[src.id]; state.scatterSelectedIds=[src.id]; save(); renderAll();});
  deleteReleve.addEventListener("click",()=>{if(state.releves.length<=1){alert("Conserver au moins un relevé.");return;} if(confirm("Supprimer le relevé actif ?")){state.releves=state.releves.filter(r=>r.id!==state.selectedId); state.selectedId=state.releves[0].id; save(); renderAll();}});
  [relName,relDate,relObserver,relLocation,relArea,relNotes].forEach(el=>el.addEventListener("input",updateMeta));
  speciesSearch.addEventListener("input",e=>{selectedTaxon=null; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; showSuggestions(searchTaxa(e.target.value));});
@@ -582,7 +746,10 @@ function bind(){
  addSpecies.addEventListener("click",addSelected); speciesSearch.addEventListener("keydown",e=>{if(e.key==="Enter"){const first=suggestions.querySelector(".suggestion"); if(first){selectTaxon(first.dataset.id); e.preventDefault();}}});
  [analysisStratum,gradientLabelMode,scatterMode,xGrad,yGrad,scatterStratum,scatterPointLabels,scatterEnvelopeMode,compareStratum].filter(Boolean).forEach(el=>el.addEventListener("change",renderAll));
  document.addEventListener("change",e=>{if(e.target.classList?.contains("releveCheck")){const kind=e.target.dataset.kind; state[kind+"SelectedIds"]=[...document.querySelectorAll(`.releveCheck[data-kind="${kind}"]:checked`)].map(x=>x.value); save(); renderAll();}});
- document.addEventListener("click",e=>{const btn=e.target.closest?.("[data-select-action]"); if(!btn)return; const kind=btn.dataset.kind, action=btn.dataset.selectAction; if(action==="all")state[kind+"SelectedIds"]=state.releves.map(r=>r.id); else if(action==="active")state[kind+"SelectedIds"]=[state.selectedId]; else if(action==="none")state[kind+"SelectedIds"]=[]; save(); renderAll();});
+ document.addEventListener("click",e=>{const btn=e.target.closest?.("[data-select-action]"); if(!btn)return; const kind=btn.dataset.kind, action=btn.dataset.selectAction; if(kind==="gradientIndex"||kind==="compareIndex")return; if(action==="all")state[kind+"SelectedIds"]=state.releves.map(r=>r.id); else if(action==="active")state[kind+"SelectedIds"]=[state.selectedId]; else if(action==="none")state[kind+"SelectedIds"]=[]; save(); renderAll();});
+
+ document.addEventListener("change",e=>{if(e.target.classList?.contains("indexCheck")){const keyName=e.target.dataset.keyname; const values=[...document.querySelectorAll(`.indexCheck[data-keyname="${keyName}"]:checked`)].map(x=>x.value); state[keyName]=values; save(); renderAll();}});
+ document.addEventListener("click",e=>{const btn=e.target.closest?.("[data-kind='gradientIndex'],[data-kind='compareIndex']"); if(!btn)return; const keyName=btn.dataset.kind==="gradientIndex"?"visibleGradientKeys":"compareGradientKeys"; const action=btn.dataset.selectAction; if(action==="all")state[keyName]=GRADIENTS.map(g=>g.key); else if(action==="common")state[keyName]=gradientIndexDefaults("common"); else if(action==="none")state[keyName]=[]; save(); renderAll();});
  document.addEventListener("change",e=>{if(e.target.classList?.contains("colorBlindToggle")){state.colorBlind=!!e.target.checked; syncColorBlindToggles(); save(); renderAll();}});
  if(window.exportGradientsPng)exportGradientsPng.addEventListener("click",()=>exportVisibleSvgsPng("#gradientCharts svg",`gradients_releves_${new Date().toISOString().slice(0,10)}.png`));
  if(window.exportScatterPng)exportScatterPng.addEventListener("click",()=>exportVisibleSvgsPng("#scatterSvg svg",`ecogramme_releves_${new Date().toISOString().slice(0,10)}.png`));
