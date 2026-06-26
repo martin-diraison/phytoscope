@@ -1,4 +1,4 @@
-const CACHE_NAME = "releves-botaniques-pwa-v15-theme-ecogramme-20260625";
+const CACHE_NAME = "releves-botaniques-pwa-v16-bottomnav-20260626";
 const APP_SHELL = [
   "./",
   "./index.html",
