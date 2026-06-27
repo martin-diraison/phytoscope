@@ -1,11 +1,16 @@
-const CACHE_NAME = "releves-botaniques-pwa-v20-ecrans-maquette-20260626";
+const CACHE_NAME = "releves-botaniques-pwa-v22-polices-locales-20260627";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./icons/icon.svg",
   "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-512.png",
+  "./fonts/inter.woff2",
+  "./fonts/inter-italic.woff2",
+  "./fonts/fraunces.woff2",
+  "./fonts/fraunces-italic.woff2",
+  "./fonts/jetbrains-mono.woff2"
 ];
 
 self.addEventListener("install", event => {
