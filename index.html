@@ -212,7 +212,7 @@
     <img class="appLogo" src="./icons/icon.svg" alt="" aria-hidden="true">
     <div>
       <h1>Application de visualisation des relevés botaniques</h1>
-      <p>Saisie des relevés phytosociologiques et la visualisation de leurs indices d'Ellenberg sur gradients et écogrammes. <strong class="betaBadge">version bêta</strong></p>
+      <p>Saisie des relevés phytosociologiques et la visualisation de leurs indices d'Ellenberg sur gradients et écogrammes. <strong class="betaBadge">version bêta · <span id="appVersionTag"></span></strong></p>
     </div>
   </div>
 </header>
@@ -408,7 +408,7 @@ const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v13_sync_mobile_indices";
+const APP_VERSION = "v24 · 2026-06-27";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 function norm(s){return (s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();}
@@ -1011,6 +1011,8 @@ function toast(msg, kind){
     setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ el.remove(); }, 320); }, 4200);
   }catch(e){ console.log('toast:', msg); }
 }
+/* Numéro de version affiché dans l'en-tête (source unique : APP_VERSION) */
+(function(){try{var t=document.getElementById("appVersionTag"); if(t&&typeof APP_VERSION!=="undefined")t.textContent=APP_VERSION;}catch(e){}})();
 /* Liaison du sélecteur Braun-Blanquet segmenté avec le select masqué #bbValue.
    Le reste de l'application continue de lire #bbValue.value : aucune logique modifiée. */
 (function(){
