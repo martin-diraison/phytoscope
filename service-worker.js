@@ -1,4 +1,4 @@
-const CACHE_NAME = "releves-botaniques-pwa-v24-version-affichee-20260627";
+const CACHE_NAME = "releves-botaniques-pwa-v25-fraunces-opsz-20260627";
 const APP_SHELL = [
   "./",
   "./index.html",
