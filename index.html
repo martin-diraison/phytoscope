@@ -16,6 +16,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <style>
 @font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url('./fonts/inter.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:italic;font-weight:100 900;font-display:swap;src:url('./fonts/inter-italic.woff2') format('woff2')}
@@ -207,6 +208,17 @@
   .add-controls .field{flex:1 1 100%}
   .btn-add{width:100%}
 }
+/* Barre d'authentification (en-tête) — socle lien magique */
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.authBar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.82rem;padding-top:4px}
+.authMuted{color:var(--muted)}
+.authWho strong{font-weight:800}
+.authInput{padding:7px 10px;border:1px solid var(--line,#d6ddcf);border-radius:9px;font:inherit;min-width:200px;background:#fff;color:inherit}
+.authBtn{padding:7px 13px;border:1px solid transparent;border-radius:9px;background:var(--moss,#4c7a44);color:#fff;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}
+.authBtn:hover{filter:brightness(.96)}
+.authBtn:disabled{opacity:.6;cursor:default}
+.authBtn.ghost{background:transparent;color:var(--moss,#4c7a44);border-color:var(--line,#d6ddcf)}
+@media(max-width:620px){.authBar{width:100%}.authInput{flex:1 1 auto;min-width:0}}
 </style>
 </head>
 <body>
@@ -218,6 +230,7 @@
       <p>Saisie des relevés phytosociologiques et la visualisation de leurs indices d'Ellenberg sur gradients et écogrammes. <strong class="betaBadge">version bêta · <span id="appVersionTag"></span></strong></p>
     </div>
   </div>
+  <div class="authBar" id="authBar" aria-live="polite"></div>
 </header>
 <nav class="tabs noPrint">
   <button class="tab active" data-view="entry"><svg class="ti" viewBox="0 0 24 24"><path d="M12 20s-7-4-7-10a7 7 0 0 1 14 0c0 6-7 10-7 10Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 20V9" stroke-linecap="round"/></svg><span class="tlong">Saisie du relevé</span><span class="tshort">Saisie</span></button>
@@ -413,7 +426,7 @@ const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v29 · 2026-06-27";
+const APP_VERSION = "v30 · 2026-06-28";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 const byName = new Map(TAXA.map(t => [t.n, t]));
@@ -1046,6 +1059,110 @@ setTimeout(function(){try{if(window.__loadCorruption&&typeof toast==="function")
   });
   sel.addEventListener('change', sync);
   sync();
+})();
+
+/* ============================================================
+   Authentification Supabase — socle « lien magique »
+   Étape vérifiable et isolée : se connecter / se déconnecter /
+   afficher l'utilisateur connecté. NE TOUCHE PAS encore aux données ;
+   la synchronisation des relevés viendra dans une étape suivante.
+   ============================================================ */
+(function(){
+  /* ----- CONFIG : valeurs PUBLIQUES (non secrètes), à renseigner -----
+     À récupérer dans Supabase → Project Settings → API :
+       • SUPABASE_URL      = « Project URL »      (https://xxxx.supabase.co)
+       • SUPABASE_ANON_KEY = « anon public » key  (clé publique côté client)
+     Et dans Supabase → Authentication → URL Configuration, mettre la
+     « Site URL » et la « Redirect URL » sur l'adresse de l'application. */
+  const SUPABASE_URL      = "https://eywuucedgtesgipniotf.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5d3V1Y2VkZ3Rlc2dpcG5pb3RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2MjMzOTAsImV4cCI6MjA5ODE5OTM5MH0.5MfcUNW2cKuHj0p-lD5CFPkFPEY6pxBsbRKHiWZTGxE";
+  /* ------------------------------------------------------------------- */
+
+  const REDIRECT_TO = location.origin + location.pathname; // page de retour du lien magique
+  let sb = null;            // client Supabase
+  let currentUser = null;   // utilisateur connecté, ou null
+
+  function configured(){
+    return SUPABASE_URL.indexOf("VOTRE-PROJET")===-1 && SUPABASE_ANON_KEY.indexOf("VOTRE_CLE")===-1;
+  }
+  function waitForSupabaseLib(){
+    return new Promise((resolve,reject)=>{
+      let n=0; const t=setInterval(()=>{
+        if(window.supabase && window.supabase.createClient){clearInterval(t); resolve();}
+        else if(++n>80){clearInterval(t); reject(new Error("Bibliothèque Supabase non chargée (vérifier la connexion internet et l'URL HTTPS)."));}
+      },100);
+    });
+  }
+  function bar(){ return document.getElementById("authBar"); }
+
+  function renderAuthBar(){
+    const el=bar(); if(!el) return;
+    if(!configured()){
+      el.innerHTML = '<span class="authMuted">Connexion au compte : non configurée</span>';
+      return;
+    }
+    if(currentUser){
+      el.innerHTML =
+        '<span class="authWho" title="'+esc(currentUser.email||"")+'">Connecté : <strong>'+esc(currentUser.email||"compte")+'</strong></span>'+
+        '<button class="authBtn ghost" id="authSignOut">Se déconnecter</button>';
+      const b=document.getElementById("authSignOut");
+      if(b) b.addEventListener("click", signOut);
+    } else {
+      el.innerHTML =
+        '<input class="authInput" id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="votre@email.fr" aria-label="Adresse e-mail">'+
+        '<button class="authBtn" id="authSend">Recevoir un lien</button>';
+      const b=document.getElementById("authSend");
+      const inp=document.getElementById("authEmail");
+      if(b) b.addEventListener("click", sendMagicLink);
+      if(inp) inp.addEventListener("keydown", e=>{ if(e.key==="Enter") sendMagicLink(); });
+    }
+  }
+
+  async function sendMagicLink(){
+    const inp=document.getElementById("authEmail");
+    const email=(inp && inp.value || "").trim();
+    if(!email || email.indexOf("@")===-1){ toast("Saisir une adresse e-mail valide."); return; }
+    const btn=document.getElementById("authSend");
+    try{
+      if(btn){ btn.disabled=true; btn.textContent="Envoi…"; }
+      const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: REDIRECT_TO } });
+      if(error) throw error;
+      toast("Lien de connexion envoyé à "+email+". Vérifiez votre boîte mail.","ok");
+    }catch(e){
+      toast("Échec de l'envoi : "+(e && e.message || e),"err");
+    }finally{
+      if(btn){ btn.disabled=false; btn.textContent="Recevoir un lien"; }
+    }
+  }
+
+  async function signOut(){
+    try{ await sb.auth.signOut(); toast("Déconnecté.","ok"); }
+    catch(e){ toast("Échec de la déconnexion : "+(e && e.message || e),"err"); }
+  }
+
+  async function init(){
+    renderAuthBar(); // état initial, même si la bibliothèque tarde à charger
+    if(!configured()) return;
+    try{ await waitForSupabaseLib(); }
+    catch(e){ toast(e.message,"err"); return; }
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
+    });
+    /* Exposé pour les étapes suivantes (synchronisation des relevés dans Supabase) */
+    window.phytoscopeAuth = { client: ()=>sb, user: ()=>currentUser };
+    try{
+      const { data } = await sb.auth.getSession();
+      currentUser = data && data.session && data.session.user || null;
+    }catch(e){ /* pas de session : on reste déconnecté */ }
+    renderAuthBar();
+    sb.auth.onAuthStateChange((_event, session)=>{
+      currentUser = session && session.user || null;
+      renderAuthBar();
+    });
+  }
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
 </script>
 </body>
