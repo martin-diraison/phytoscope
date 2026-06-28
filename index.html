@@ -218,6 +218,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
 .authBtn:hover{filter:brightness(.96)}
 .authBtn:disabled{opacity:.6;cursor:default}
 .authBtn.ghost{background:transparent;color:var(--moss,#4c7a44);border-color:var(--line,#d6ddcf)}
+.authSync{color:var(--muted);font-size:.76rem;white-space:nowrap}
 @media(max-width:620px){.authBar{width:100%}.authInput{flex:1 1 auto;min-width:0}}
 </style>
 </head>
@@ -426,7 +427,7 @@ const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v30 · 2026-06-28";
+const APP_VERSION = "v31 · 2026-06-28";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 const byName = new Map(TAXA.map(t => [t.n, t]));
@@ -533,7 +534,7 @@ function markUnsynced(){
     syncState.dirty = true; saveSyncState(); renderSyncPanel?.();
   }
 }
-function save(){state=normalizeAppStateForSync(state); localStorage.setItem(STORE_KEY, JSON.stringify(state)); markUnsynced();}
+function save(){state=normalizeAppStateForSync(state); localStorage.setItem(STORE_KEY, JSON.stringify(state)); markUnsynced(); if(typeof window.__supaOnLocalSave==="function")window.__supaOnLocalSave();}
 function current(){let r=state.releves.find(x=>x.id===state.selectedId); if(!r){r=state.releves[0]||blankReleve("Relevé 1"); if(!state.releves.length)state.releves.push(r); state.selectedId=r.id;} return r;}
 function esc(s){return (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
 function fmt(x,d=2){return x==null||Number.isNaN(x)?"—":Number(x).toLocaleString("fr-FR",{maximumFractionDigits:d,minimumFractionDigits:0});}
@@ -920,7 +921,7 @@ function bind(){
  releveSelect.addEventListener("change",e=>{state.selectedId=e.target.value; save(); renderAll();});
  newReleve.addEventListener("click",()=>{const r=blankReleve(`Relevé ${state.releves.length+1}`); state.releves.push(r); state.selectedId=r.id; state.gradientSelectedIds=[r.id]; state.scatterSelectedIds=[r.id]; save(); renderAll();});
  duplicateReleve.addEventListener("click",()=>{const src=JSON.parse(JSON.stringify(current())); src.id=uid(); src.name=(src.name||"Relevé")+" — copie"; src.created_at=new Date().toISOString(); src.updated_at=src.created_at; src.device_id=getDeviceId(); (src.rows||[]).forEach(row=>row.line_id=uid()); state.releves.push(src); state.selectedId=src.id; state.gradientSelectedIds=[src.id]; state.scatterSelectedIds=[src.id]; save(); renderAll();});
- deleteReleve.addEventListener("click",()=>{if(state.releves.length<=1){toast("Conserver au moins un relevé.");return;} if(confirm("Supprimer le relevé actif ?")){state.releves=state.releves.filter(r=>r.id!==state.selectedId); state.selectedId=state.releves[0].id; save(); renderAll();}});
+ deleteReleve.addEventListener("click",()=>{if(state.releves.length<=1){toast("Conserver au moins un relevé.");return;} if(confirm("Supprimer le relevé actif ?")){if(typeof window.__supaOnLocalDelete==="function")window.__supaOnLocalDelete(state.selectedId); state.releves=state.releves.filter(r=>r.id!==state.selectedId); state.selectedId=state.releves[0].id; save(); renderAll();}});
  [relName,relDate,relObserver,window.relSite,relLocation,relArea,relNotes].filter(Boolean).forEach(el=>el.addEventListener("input",updateMeta));
  speciesSearch.addEventListener("input",e=>{selectedTaxon=null; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; showSuggestions(searchTaxa(e.target.value));});
  suggestions.addEventListener("click",e=>{const item=e.target.closest(".suggestion"); if(item)selectTaxon(item.dataset.id);});
@@ -1104,7 +1105,11 @@ setTimeout(function(){try{if(window.__loadCorruption&&typeof toast==="function")
     if(currentUser){
       el.innerHTML =
         '<span class="authWho" title="'+esc(currentUser.email||"")+'">Connecté : <strong>'+esc(currentUser.email||"compte")+'</strong></span>'+
+        '<span class="authSync" id="authSyncStatus">'+esc(syncStatusText())+'</span>'+
+        '<button class="authBtn" id="authSyncBtn">Synchroniser</button>'+
         '<button class="authBtn ghost" id="authSignOut">Se déconnecter</button>';
+      const s=document.getElementById("authSyncBtn");
+      if(s) s.addEventListener("click", ()=>supaSyncNow(false));
       const b=document.getElementById("authSignOut");
       if(b) b.addEventListener("click", signOut);
     } else {
@@ -1140,6 +1145,84 @@ setTimeout(function(){try{if(window.__loadCorruption&&typeof toast==="function")
     catch(e){ toast("Échec de la déconnexion : "+(e && e.message || e),"err"); }
   }
 
+  /* ----- Synchronisation des relevés (Supabase = principal) -----
+     Deux sens : pull → fusion non destructive (mergeAppStates) → push.
+     Déclenchée à la connexion, au clic « Synchroniser », et (push seul)
+     après chaque modification locale. Google Sheets reste un export manuel. */
+  const SUPA_SYNC_KEY = "phytoscope_supabase_sync_v01";
+  let supaBusy = false;
+  let pushTimer = null;
+
+  function syncStatusText(){
+    try{
+      const j=JSON.parse(localStorage.getItem(SUPA_SYNC_KEY)||"{}");
+      if(j.lastSyncAt){
+        const d=new Date(j.lastSyncAt);
+        return "Synchronisé à "+d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+      }
+    }catch(e){}
+    return "Non synchronisé";
+  }
+  function supaSet(t){ const el=document.getElementById("authSyncStatus"); if(el) el.textContent=t; }
+  function markSynced(){ try{ localStorage.setItem(SUPA_SYNC_KEY, JSON.stringify({lastSyncAt:new Date().toISOString()})); }catch(e){} supaSet(syncStatusText()); }
+
+  async function supaPull(){
+    const { data, error } = await sb.from("releves").select("id,donnees,updated_at");
+    if(error) throw error;
+    const releves=(data||[]).map(row=>{
+      const r=(row.donnees && typeof row.donnees==="object") ? row.donnees : {};
+      if(!r.id) r.id=row.id;
+      if(!r.updated_at && row.updated_at) r.updated_at=row.updated_at;
+      return r;
+    });
+    return { selectedId:null, releves };
+  }
+  async function supaPushAll(st){
+    const uid=currentUser && currentUser.id; if(!uid) return;
+    const rows=(st.releves||[]).map(r=>({
+      id:r.id, proprietaire_id:uid, nom:r.name||"", donnees:r,
+      updated_at:r.updated_at||new Date().toISOString()
+    }));
+    if(!rows.length) return;
+    const { error } = await sb.from("releves").upsert(rows, { onConflict:"id" });
+    if(error) throw error;
+  }
+  async function supaDeleteRemote(id){
+    if(!sb || !currentUser || !id) return;
+    try{ await sb.from("releves").delete().eq("id", id); markSynced(); }
+    catch(e){ /* suppression distante silencieuse */ }
+  }
+  async function supaSyncNow(silent){
+    if(!sb || !currentUser){ if(!silent) toast("Connectez-vous d'abord."); return; }
+    if(supaBusy) return;
+    supaBusy=true; supaSet("Synchronisation…");
+    try{
+      const remote=await supaPull();
+      const merged=mergeAppStates(stateClone(), remote);
+      setStateWithoutDirty(merged);
+      renderAll();
+      await supaPushAll(merged);
+      markSynced();
+      const cf=merged._last_merge_conflicts||[];
+      if(cf.length) toast(cf.length+" conflit(s) détecté(s) : copie(s) « conflit local » créée(s).","err");
+      if(!silent) toast("Relevés synchronisés.","ok");
+    }catch(e){
+      supaSet("Échec de synchro");
+      toast("Synchro Supabase : "+(e && e.message || e),"err");
+    }finally{ supaBusy=false; }
+  }
+  function schedulePush(){
+    if(!sb || !currentUser) return;
+    clearTimeout(pushTimer);
+    pushTimer=setTimeout(async ()=>{
+      try{ supaSet("Enregistrement…"); await supaPushAll(stateClone()); markSynced(); }
+      catch(e){ supaSet("Échec d'enregistrement"); toast("Enregistrement Supabase : "+(e && e.message || e),"err"); }
+    }, 1500);
+  }
+  /* Hooks appelés depuis l'application (save() / suppression de relevé) */
+  window.__supaOnLocalSave   = function(){ if(sb && currentUser) schedulePush(); };
+  window.__supaOnLocalDelete = function(id){ if(sb && currentUser) supaDeleteRemote(id); };
+
   async function init(){
     renderAuthBar(); // état initial, même si la bibliothèque tarde à charger
     if(!configured()) return;
@@ -1155,9 +1238,12 @@ setTimeout(function(){try{if(window.__loadCorruption&&typeof toast==="function")
       currentUser = data && data.session && data.session.user || null;
     }catch(e){ /* pas de session : on reste déconnecté */ }
     renderAuthBar();
-    sb.auth.onAuthStateChange((_event, session)=>{
+    if(currentUser) supaSyncNow(true);
+    sb.auth.onAuthStateChange((event, session)=>{
+      const wasUser=!!currentUser;
       currentUser = session && session.user || null;
       renderAuthBar();
+      if(currentUser && (event==="SIGNED_IN" || !wasUser)) supaSyncNow(true);
     });
   }
 

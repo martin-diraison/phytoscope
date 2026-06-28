@@ -1,4 +1,4 @@
-const CACHE_NAME = "releves-botaniques-pwa-v30-auth-20260628";
+const CACHE_NAME = "releves-botaniques-pwa-v31-supasync-20260628";
 const APP_SHELL = [
   "./",
   "./index.html",
