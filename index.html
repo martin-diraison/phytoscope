@@ -199,6 +199,9 @@
 .selected-hint{margin-top:11px;font-size:.86rem;color:var(--muted);display:flex;align-items:center;gap:8px;min-height:20px}
 .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 .card-head h2{margin:0}
+.indexCat{width:100%;margin-bottom:8px}
+.indexCatTitle{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:2px 0 5px 2px}
+.indexCatItems{display:flex;flex-wrap:wrap;gap:6px}
 @media(max-width:760px){
   .add-controls{gap:10px}
   .add-controls .field{flex:1 1 100%}
@@ -326,7 +329,8 @@
 
     <div class="card">
       <div class="toolbar"><div class="grow"></div><label class="small muted">Strate</label><select id="compareStratum"></select><button class="secondary miniBtn" id="exportCompareCsv">CSV</button><button class="secondary miniBtn" id="exportCompareXls">Excel</button><button class="secondary miniBtn" id="exportCompareFods">LibreOffice</button></div>
-      <div class="selectorPanel indexSelector noPrint"><div class="filterTitle"><strong class="small">Indices affichés dans le tableau</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="all">Tout</button><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="common">Principaux</button><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="none">Aucun</button></div></div><div id="compareIndexChecks" class="checkList"></div></div>
+      <div class="selectorPanel noPrint slimPanel"><div class="selectorPanelHeader"><strong class="small">Relevés affichés</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="compare" data-select-action="active">Actif</button><button class="ghost miniBtn" data-kind="compare" data-select-action="all">Tous</button><button class="ghost miniBtn" data-kind="compare" data-select-action="none">Aucun</button></div></div><input class="panelSearch releveFilter" data-kind="compare" placeholder="Filtrer les relevés par nom, site ou localisation…"><div id="compareReleveChecks" class="checkList selectableReleves"></div></div>
+      <div class="selectorPanel indexSelector noPrint"><div class="filterTitle"><strong class="small">Indices affichés dans le tableau</strong><div class="selectorActions"><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="all">Tout</button><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="climatiques">Climatiques</button><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="edaphiques">Édaphiques</button><button class="ghost miniBtn" data-kind="compareIndex" data-select-action="none">Aucun</button></div></div><div id="compareIndexChecks" class="checkList"></div></div>
       <div class="tableWrap compactTable"><table id="compareTable" class="comparisonTable"></table></div>
     </div>
   </section>
@@ -391,6 +395,7 @@ const TAXA = [{"id":0,"n":"Abies alba Mill.","s":"Abies alba H","v":[7.0,3.0,7.0
 const BARE_SOIL_TAXON={id:-1,n:"Sol nu",s:"Sans végétation",v:Array(10).fill(null)};
 TAXA.push(BARE_SOIL_TAXON);
 const GRADIENTS = [{"key":"lumiere","label":"Lumière","short":"L","min":1,"max":9,"low":"hypersciaphile","high":"hyperhéliophile"},{"key":"temperature","label":"Température","short":"T","min":1,"max":9,"low":"alpin à nival","high":"thermo-méditerranéen"},{"key":"continentalite","label":"Continentalité","short":"C","min":1,"max":9,"low":"maritime","high":"hypercontinental"},{"key":"humidite_atmospherique","label":"Humidité atmosphérique","short":"HA","min":1,"max":9,"low":"xéro-atmosphérique","high":"aérohydrophile"},{"key":"humidite_edaphique","label":"Humidité édaphique","short":"HE","min":1,"max":12,"low":"hyperxérophile","high":"aquatique profonde"},{"key":"reaction_sol_ph","label":"Réaction du sol (pH)","short":"pH","min":1,"max":9,"low":"hyperacidophile","high":"hyperbasophile"},{"key":"niveau_trophique","label":"Niveau trophique","short":"N","min":1,"max":9,"low":"hyperoligotrophe","high":"hypereutrophe"},{"key":"salinite","label":"Salinité","short":"S","min":0,"max":9,"low":"non halophile","high":"hyperhaline"},{"key":"texture","label":"Texture","short":"Tx","min":1,"max":9,"low":"argile","high":"fissures pariétales"},{"key":"matiere_organique","label":"Matière organique","short":"MO","min":1,"max":9,"low":"lithosol / régosol","high":"tourbe"}];
+const INDEX_CATEGORIES={climatiques:["lumiere","temperature","continentalite","humidite_atmospherique"],edaphiques:["humidite_edaphique","reaction_sol_ph","niveau_trophique","salinite","texture","matiere_organique"]};
 const GRADIENT_TERMS = {
   lumiere: [{v:1,t:"hypersciaphile"},{v:3,t:"sciaphile"},{v:5,t:"hémisciaphile"},{v:7,t:"héliophile"},{v:9,t:"hyperhéliophile"}],
   temperature: [{v:1,t:"alpin à nival"},{v:3,t:"montagnard"},{v:5,t:"planitiaire à montagnard"},{v:7,t:"euryméditerranéen"},{v:9,t:"thermo-méditerranéen"}],
@@ -408,7 +413,7 @@ const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v28 · 2026-06-27";
+const APP_VERSION = "v29 · 2026-06-27";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 const byName = new Map(TAXA.map(t => [t.n, t]));
@@ -448,7 +453,8 @@ function normalizeAppStateForSync(s){
   if(!Array.isArray(s.gradientSelectedIds))s.gradientSelectedIds=s.selectedId?[s.selectedId]:[];
   if(!Array.isArray(s.scatterSelectedIds))s.scatterSelectedIds=s.selectedId?[s.selectedId]:[];
   if(!Array.isArray(s.visibleGradientKeys))s.visibleGradientKeys=GRADIENTS.map(g=>g.key);
-  if(!Array.isArray(s.compareGradientKeys))s.compareGradientKeys=GRADIENTS.map(g=>g.key);
+  if(!Array.isArray(s.compareGradientKeys))s.compareGradientKeys=[];
+  if(!s._compareReset28){s.compareGradientKeys=[]; s.compareSelectedIds=[]; s._compareReset28=true;}
   if(!s.releveColors || typeof s.releveColors!=="object")s.releveColors={};
   if(!s.releveFilters || typeof s.releveFilters!=="object")s.releveFilters={};
   return s;
@@ -554,7 +560,7 @@ function releveColor(rel){return (state.releveColors&&state.releveColors[rel.id]
 function ensureSelections(){["gradient","scatter"].forEach(kind=>{const key=kind+"SelectedIds"; if(!Array.isArray(state[key]))state[key]=state.selectedId?[state.selectedId]:(state.releves[0]?[state.releves[0].id]:[]); const before=state[key].length; const valid=new Set(state.releves.map(r=>r.id)); state[key]=state[key].filter(id=>valid.has(id)); if(before>0 && state[key].length===0 && state.releves.length)state[key]=[state.selectedId||state.releves[0].id];});}
 function selectedReleves(kind){ensureSelections(); const ids=new Set(state[kind+"SelectedIds"]||[]); return state.releves.filter(r=>ids.has(r.id));}
 function syncColorBlindToggles(){document.querySelectorAll(".colorBlindToggle").forEach(ch=>{ch.checked=!!state.colorBlind;});}
-function renderSelectionControls(){ensureSelections(); renderSelectionControl("gradient","gradientReleveChecks"); renderSelectionControl("scatter","scatterReleveChecks"); document.querySelectorAll(".releveFilter").forEach(inp=>{inp.value=(state.releveFilters&&state.releveFilters[inp.dataset.kind])||"";});}
+function renderSelectionControls(){ensureSelections(); renderSelectionControl("gradient","gradientReleveChecks"); renderSelectionControl("scatter","scatterReleveChecks"); renderSelectionControl("compare","compareReleveChecks"); document.querySelectorAll(".releveFilter").forEach(inp=>{inp.value=(state.releveFilters&&state.releveFilters[inp.dataset.kind])||"";});}
 function renderSelectionControl(kind,boxId){
   const box=document.getElementById(boxId); if(!box)return;
   const ids=new Set(state[kind+"SelectedIds"]||[]);
@@ -573,7 +579,7 @@ function renderIndexControl(keyName,boxId){
   const box=document.getElementById(boxId); if(!box)return;
   if(!Array.isArray(state[keyName]))state[keyName]=GRADIENTS.map(g=>g.key);
   const chosen=new Set(state[keyName]);
-  box.innerHTML=GRADIENTS.map(g=>`<label class="checkItem"><input class="indexCheck" type="checkbox" data-keyname="${keyName}" value="${g.key}" ${chosen.has(g.key)?"checked":""}><span>${esc(g.short)}</span><span class="small muted">${esc(g.label)}</span></label>`).join("");
+  box.innerHTML=Object.entries(INDEX_CATEGORIES).map(([cat,keys])=>{const title=cat==="climatiques"?`Climatiques (${keys.length})`:`Édaphiques (${keys.length})`; const items=keys.map(k=>{const g=GRADIENTS.find(x=>x.key===k); return `<label class="checkItem"><input class="indexCheck" type="checkbox" data-keyname="${keyName}" value="${g.key}" ${chosen.has(g.key)?"checked":""}><span>${esc(g.short)}</span><span class="small muted">${esc(g.label)}</span></label>`;}).join(""); return `<div class="indexCat"><div class="indexCatTitle">${title}</div><div class="indexCatItems">${items}</div></div>`;}).join("");
 }
 function legendFor(groups){return groups.map(grp=>`<span class="key"><span class="colorDot" style="background:${releveColor(grp.rel)}"></span>${esc(releveLabel(grp.rel))}</span>`).join("");}
 function tipAttr(txt){return `class="tipPoint" tabindex="0" data-tip="${esc(String(txt||"").replace(/\s+/g," "))}"`;}
@@ -680,7 +686,9 @@ function renderCompare(){
   if(!indices.length){table.innerHTML=`<tbody><tr><td><div class="empty">Aucun indice sélectionné.</div></td></tr></tbody>`;return;}
   const head1=`<thead><tr><th rowspan="2" class="relCell">Relevé</th><th rowspan="2" class="num">Taxons</th>`+indices.map(i=>`<th colspan="4" class="num groupSep">${esc(GRADIENTS[i].short)} · ${esc(GRADIENTS[i].label)}</th>`).join("")+`</tr>`;
   const head2=`<tr>`+indices.map(()=>`<th class="num groupSep" title="Moyenne simple">Moy.</th><th class="num" title="Moyenne pondérée par recouvrement">Pond.</th><th class="num" title="Écart-type simple">σ</th><th class="num" title="Écart-type pondéré">σp</th>`).join("")+`</tr></thead>`;
-  const body=state.releves.map(r=>{
+  const chosenReleves=selectedReleves("compare");
+  if(!chosenReleves.length){table.innerHTML=`<tbody><tr><td><div class="empty">Aucun relevé sélectionné — choisissez les relevés à comparer ci-dessus.</div></td></tr></tbody>`;return;}
+  const body=chosenReleves.map(r=>{
     const st=stats(r,filter);
     return `<tr><td class="relCell"><strong>${esc(r.name||"Sans nom")}</strong><br><span class="small muted">${esc([r.site,r.location].filter(Boolean).join(" · "))}</span></td><td class="num">${rowsWithTaxa(r,filter).length}</td>`+indices.map(i=>{const x=st[i]; return `<td class="num groupSep">${fmt(x.mean)}</td><td class="num"><strong>${fmt(x.wmean)}</strong></td><td class="num">${fmt(x.sd)}</td><td class="num">${fmt(x.wsd)}</td>`;}).join("")+`</tr>`;
   }).join("");
@@ -911,7 +919,7 @@ function bind(){
  document.addEventListener("click",e=>{const btn=e.target.closest?.("[data-select-action]"); if(!btn)return; const kind=btn.dataset.kind, action=btn.dataset.selectAction; if(kind==="gradientIndex"||kind==="compareIndex")return; if(action==="all")state[kind+"SelectedIds"]=state.releves.map(r=>r.id); else if(action==="active")state[kind+"SelectedIds"]=[state.selectedId]; else if(action==="none")state[kind+"SelectedIds"]=[]; save(); renderAll();});
 
  document.addEventListener("change",e=>{if(e.target.classList?.contains("indexCheck")){const keyName=e.target.dataset.keyname; const values=[...document.querySelectorAll(`.indexCheck[data-keyname="${keyName}"]:checked`)].map(x=>x.value); state[keyName]=values; save(); renderAll();}});
- document.addEventListener("click",e=>{const btn=e.target.closest?.("[data-kind='gradientIndex'],[data-kind='compareIndex']"); if(!btn)return; const keyName=btn.dataset.kind==="gradientIndex"?"visibleGradientKeys":"compareGradientKeys"; const action=btn.dataset.selectAction; if(action==="all")state[keyName]=GRADIENTS.map(g=>g.key); else if(action==="common")state[keyName]=gradientIndexDefaults("common"); else if(action==="none")state[keyName]=[]; save(); renderAll();});
+ document.addEventListener("click",e=>{const btn=e.target.closest?.("[data-kind='gradientIndex'],[data-kind='compareIndex']"); if(!btn)return; const keyName=btn.dataset.kind==="gradientIndex"?"visibleGradientKeys":"compareGradientKeys"; const action=btn.dataset.selectAction; if(action==="all")state[keyName]=GRADIENTS.map(g=>g.key); else if(action==="common")state[keyName]=gradientIndexDefaults("common"); else if(action==="climatiques")state[keyName]=INDEX_CATEGORIES.climatiques.slice(); else if(action==="edaphiques")state[keyName]=INDEX_CATEGORIES.edaphiques.slice(); else if(action==="none")state[keyName]=[]; save(); renderAll();});
  document.addEventListener("input",e=>{if(e.target.classList?.contains("releveFilter")){const kind=e.target.dataset.kind; state.releveFilters=state.releveFilters||{}; state.releveFilters[kind]=e.target.value||""; save(); renderSelectionControls();}});
  document.addEventListener("input",e=>{if(e.target.matches?.("[data-releve-color]")){state.releveColors=state.releveColors||{}; state.releveColors[e.target.dataset.releveColor]=e.target.value; save(); renderAll();}});
  document.addEventListener("click",e=>{const axis=e.target.closest?.(".axisPicker")?.dataset.axis; if(axis){const sel=axis==="x"?xGrad:yGrad; sel.selectedIndex=(sel.selectedIndex+1)%sel.options.length; save(); renderScatter(); e.stopPropagation();}});
