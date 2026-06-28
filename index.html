@@ -8,7 +8,7 @@
   <title>Application de visualisation des relevés botaniques</title>
   <!-- v14 : champ Site, gradients repliables, export comparaison, choix axes interactif, ergonomie mobile affinée -->
   <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#edf1e8">
+  <meta name="theme-color" content="#f6f3ed">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Relevés botaniques">
@@ -26,18 +26,18 @@
 </style>
   <style>
     :root{
-      --bg:#edf1e8; --panel:#fafbf7; --ink:#16201a; --muted:#5a6a5c; --line:#dbe3d3;
-      --brand:#2c6a4d; --brandDark:#1a4332; --brand2:#e2eedd; --accent:#b6801c; --danger:#a4423b;
-      --soft:#f2f5ec; --shadow:0 1px 2px rgba(20,40,25,.05), 0 14px 34px rgba(20,50,30,.08); --radius:16px;
+      --bg:#f6f3ed; --panel:#fffdf9; --ink:#211f1a; --muted:#6a6256; --line:#e9e2d5;
+      --brand:#3f6b4e; --brandDark:#284732; --brand2:#e7ecdb; --accent:#b15a3c; --danger:#a4423b;
+      --soft:#f1ece1; --shadow:0 1px 2px rgba(30,25,18,.05), 0 14px 34px rgba(40,30,20,.08); --radius:16px;
       --display:"Fraunces",Georgia,"Times New Roman",serif; --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
     }
 
     html, body { color-scheme: light !important; background:var(--bg) !important; }
     @media (prefers-color-scheme: dark){
       :root{
-        --bg:#edf1e8 !important; --panel:#fafbf7 !important; --ink:#16201a !important; --muted:#5a6a5c !important; --line:#dbe3d3 !important;
-        --brand:#2c6a4d !important; --brand2:#e2eedd !important; --accent:#b6801c !important; --danger:#a4423b !important;
-        --shadow:0 1px 2px rgba(20,40,25,.05), 0 14px 34px rgba(20,50,30,.08) !important; --radius:16px !important;
+        --bg:#f6f3ed !important; --panel:#fffdf9 !important; --ink:#211f1a !important; --muted:#6a6256 !important; --line:#e9e2d5 !important;
+        --brand:#3f6b4e !important; --brandDark:#284732 !important; --brand2:#e7ecdb !important; --accent:#b15a3c !important; --danger:#a4423b !important;
+        --soft:#f1ece1 !important; --shadow:0 1px 2px rgba(30,25,18,.05), 0 14px 34px rgba(40,30,20,.08) !important; --radius:16px !important;
       }
       body, header, main, section, .card, .gradientCard, .metric, .miniItem, .selectorPanel, .legendHelp, .syncStatus, .suggestions, input, select, textarea, button.secondary, .tab, .checkItem, table, th, td {
         color-scheme: light !important;
@@ -50,7 +50,7 @@
     .installBadge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 10px;background:#edf6e8;color:#25512f;font-weight:750}
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.45}
-    header{padding:26px 28px 18px;background:radial-gradient(circle at 8% 0%,#ffffff 0,#e7efdf 34%,transparent 68%),linear-gradient(135deg,#eef4e7,#fafcf6 58%,#f5ecd6);border-bottom:1px solid var(--line)}
+    header{padding:26px 28px 18px;background:radial-gradient(120% 130% at 0% 0%,#fffdf9 0%,#f1ece1 55%,#f6f3ed 100%);border-bottom:1px solid var(--line)}
     h1{margin:0 0 8px;font-family:var(--display);font-weight:600;font-size:clamp(1.5rem,2.5vw,2.3rem);letter-spacing:-.02em;line-height:1.08;font-variation-settings:"opsz" 72,"wght" 600}
     header p{margin:0;max-width:1050px;color:var(--muted)}
     .betaBadge{display:inline-block;margin-left:.7em;color:#b00020;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
@@ -62,7 +62,7 @@
     .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 24px 0}.tab{background:#fff;color:var(--muted);border-color:var(--line)}.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
     main{padding:22px 24px 45px;max-width:1480px;margin:0 auto}.view{display:none}.view.active{display:block}
     .grid{display:grid;grid-template-columns:360px 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.full{grid-column:1/-1}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px}.card h2,.card h3{margin:0 0 12px;font-family:var(--display);font-weight:600;color:var(--brandDark);letter-spacing:-.01em}.card h2{font-size:1.24rem;position:relative;padding-left:14px}.card h2::before{content:"";position:absolute;left:0;top:.18em;bottom:.18em;width:4px;border-radius:3px;background:linear-gradient(180deg,var(--brand),var(--accent))}.card h3{font-size:1.02rem;color:var(--brand)}.muted{color:var(--muted)}.small{font-size:.86rem}.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 9px;background:var(--brand2);color:#244b2c;font-size:.82rem;font-weight:650}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}.field label{font-weight:650;font-size:.88rem;color:#334335}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px}.card h2,.card h3{margin:0 0 12px;font-family:var(--display);font-weight:600;color:var(--brandDark);letter-spacing:-.01em}.card h2{font-size:1.24rem;position:relative;padding-left:14px}.card h2::before{content:"";position:absolute;left:0;top:.18em;bottom:.18em;width:4px;border-radius:3px;background:linear-gradient(180deg,var(--brand),var(--brandDark))}.card h3{font-size:1.02rem;color:var(--brand)}.muted{color:var(--muted)}.small{font-size:.86rem}.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 9px;background:var(--brand2);color:#244b2c;font-size:.82rem;font-weight:650}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}.field label{font-weight:650;font-size:.88rem;color:#334335}
     table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left;vertical-align:top}th{font-size:.82rem;color:#536055;background:#fafcf8;position:sticky;top:0;z-index:1}td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}.tableWrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:14px}
     .suggestWrap{position:relative}.suggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px rgba(20,40,20,.14);z-index:20;max-height:340px;overflow:auto;display:none}.suggestions.open{display:block}.suggestion{padding:10px 12px;border-bottom:1px solid #eef2eb;cursor:pointer}.suggestion:hover,.suggestion.active{background:#f0f7ec}.suggestion b{display:block}.suggestion span{font-size:.82rem;color:var(--muted)}
     .summary{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:10px}.metric{background:linear-gradient(180deg,#ffffff,var(--soft));border:1px solid var(--line);border-radius:14px;padding:11px 12px}.metric .label{font-size:.68rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em}.metric .value{font-family:var(--mono);font-size:1.3rem;font-weight:600;color:var(--brandDark);margin-top:4px;letter-spacing:-.01em}
@@ -220,6 +220,11 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
 .authBtn.ghost{background:transparent;color:var(--moss,#4c7a44);border-color:var(--line,#d6ddcf)}
 .authSync{color:var(--muted);font-size:.76rem;white-space:nowrap}
 .authNarrow{min-width:120px}
+.authForm{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.authMini{min-width:84px;width:118px}
+.authSelect{padding:7px 9px;border:1px solid var(--line,#d6ddcf);border-radius:9px;font:inherit;background:#fff;color:inherit}
+.authPreview{flex-basis:100%;color:var(--muted);font-size:.74rem;margin-top:-2px}
+@media(max-width:620px){.authMini{flex:1 1 40%;width:auto}.authSelect{flex:1 1 40%}}
 @media(max-width:620px){.authBar{width:100%}.authInput{flex:1 1 auto;min-width:0}}
 </style>
 </head>
@@ -428,7 +433,7 @@ const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v32 · 2026-06-28";
+const APP_VERSION = "v35 · 2026-06-28";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 const byName = new Map(TAXA.map(t => [t.n, t]));
@@ -1080,7 +1085,15 @@ setTimeout(function(){try{if(window.__loadCorruption&&typeof toast==="function")
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5d3V1Y2VkZ3Rlc2dpcG5pb3RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2MjMzOTAsImV4cCI6MjA5ODE5OTM5MH0.5MfcUNW2cKuHj0p-lD5CFPkFPEY6pxBsbRKHiWZTGxE";
   /* ------------------------------------------------------------------- */
 
-  const REDIRECT_TO = location.origin + location.pathname; // page de retour du lien magique
+  /* Mot de passe de classe, commun et caché : l'étudiant ne tape qu'un identifiant,
+     l'application complète ce mot de passe automatiquement. Ainsi aucun mot de passe
+     à retenir ni à oublier.
+     ATTENTION : page statique → cette valeur est visible dans le code source.
+     Sécurité « test / classe » uniquement. 6 caractères minimum.
+     Tu peux mettre un secret différent par déploiement (classe). */
+  const CLASS_SECRET = "classe-phytoscope-2026";
+
+  const REDIRECT_TO = location.origin + location.pathname; // (hérité ; non utilisé en mode identifiant)
   let sb = null;            // client Supabase
   let currentUser = null;   // utilisateur connecté, ou null
 
@@ -1115,41 +1128,98 @@ setTimeout(function(){try{if(window.__loadCorruption&&typeof toast==="function")
       if(b) b.addEventListener("click", signOut);
     } else {
       el.innerHTML =
-        '<input class="authInput authNarrow" id="authId" autocomplete="username" placeholder="identifiant" aria-label="Identifiant">'+
-        '<input class="authInput authNarrow" id="authPw" type="password" autocomplete="current-password" placeholder="mot de passe" aria-label="Mot de passe">'+
-        '<button class="authBtn" id="authGo">Se connecter</button>';
+        '<div class="authForm">'+
+          '<input class="authInput authMini" id="authNom" autocomplete="off" placeholder="Nom" aria-label="Nom">'+
+          '<input class="authInput authMini" id="authPrenom" autocomplete="off" placeholder="Prénom" aria-label="Prénom">'+
+          '<select class="authSelect" id="authUE" aria-label="UE de travail">'+
+            '<option value="">UE…</option>'+
+            '<option value="UE 1.1">UE 1.1</option>'+
+            '<option value="UE 2.1">UE 2.1</option>'+
+            '<option value="UE 3.1">UE 3.1</option>'+
+            '<option value="UE 4.2">UE 4.2</option>'+
+            '<option value="autre">Autre…</option>'+
+          '</select>'+
+          '<input class="authInput authMini" id="authUEautre" placeholder="préciser l\'UE" aria-label="Préciser l\'UE" style="display:none">'+
+          '<select class="authSelect" id="authAnnee" aria-label="Année">'+
+            '<option value="">Année…</option>'+
+            '<option value="2026">2026</option>'+
+            '<option value="2027">2027</option>'+
+            '<option value="2028">2028</option>'+
+            '<option value="2029">2029</option>'+
+            '<option value="2030">2030</option>'+
+          '</select>'+
+          '<button class="authBtn" id="authGo">Se connecter</button>'+
+          '<span class="authPreview" id="authPreview"></span>'+
+        '</div>';
+      ["authNom","authPrenom","authUE","authUEautre","authAnnee"].forEach(id=>{
+        const e=document.getElementById(id);
+        if(e){ e.addEventListener("input",updatePreview); e.addEventListener("change",updatePreview); }
+      });
+      ["authNom","authPrenom","authUEautre"].forEach(id=>{
+        const e=document.getElementById(id);
+        if(e) e.addEventListener("keydown", ev=>{ if(ev.key==="Enter") signInWithIdentifier(); });
+      });
       const go=document.getElementById("authGo");
-      const onEnter=e=>{ if(e.key==="Enter") signInWithIdentifier(); };
       if(go) go.addEventListener("click", signInWithIdentifier);
-      const a=document.getElementById("authId"), p=document.getElementById("authPw");
-      if(a) a.addEventListener("keydown", onEnter);
-      if(p) p.addEventListener("keydown", onEnter);
+      updatePreview();
     }
+  }
+
+  /* Slugifie en retirant les accents : « Prénom » → « prenom ». */
+  function slugify(s){
+    return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+  }
+  function loginFields(){
+    const g=id=>document.getElementById(id);
+    const ueSel=g("authUE"); let ue=ueSel?ueSel.value:"";
+    if(ue==="autre"){ const x=g("authUEautre"); ue=(x && x.value || "").trim(); }
+    return {
+      nom:(g("authNom") && g("authNom").value || "").trim(),
+      prenom:(g("authPrenom") && g("authPrenom").value || "").trim(),
+      ueRaw:ueSel?ueSel.value:"", ue,
+      annee:(g("authAnnee") && g("authAnnee").value || "").trim()
+    };
+  }
+  function buildIdentifier(f){
+    return [f.nom,f.prenom,f.ue,f.annee].map(slugify).filter(Boolean).join("-");
+  }
+  function updatePreview(){
+    const ueSel=document.getElementById("authUE"), x=document.getElementById("authUEautre");
+    if(ueSel && x) x.style.display = (ueSel.value==="autre") ? "" : "none";
+    const el=document.getElementById("authPreview");
+    if(el){ const id=buildIdentifier(loginFields()); el.textContent = id ? ("Identifiant : "+id) : ""; }
   }
 
   /* Identifiant → adresse e-mail interne (factice, non envoyée) */
   function idToEmail(id){
-    const slug=String(id).trim().toLowerCase().replace(/[^a-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"");
+    const slug=slugify(id);
     return slug ? slug+"@phytoscope.local" : "";
   }
   async function signInWithIdentifier(){
     if(!sb){ toast("Connexion en cours d'initialisation, réessayez."); return; }
-    const idEl=document.getElementById("authId"), pwEl=document.getElementById("authPw");
-    const ident=(idEl && idEl.value || "").trim();
-    const pw=(pwEl && pwEl.value || "");
-    if(!ident){ toast("Saisir un identifiant."); return; }
-    if(pw.length<6){ toast("Mot de passe : 6 caractères minimum."); return; }
+    const f=loginFields();
+    const pw=CLASS_SECRET; // mot de passe de classe commun, fourni par l'application
+    if(!f.nom){ toast("Indiquez votre nom."); return; }
+    if(!f.prenom){ toast("Indiquez votre prénom."); return; }
+    if(!f.ueRaw){ toast("Choisissez l'UE de travail."); return; }
+    if(f.ueRaw==="autre" && !f.ue){ toast("Précisez l'UE."); return; }
+    if(!f.annee){ toast("Choisissez l'année."); return; }
+    if(!pw || pw.length<6){ toast("Configuration : CLASS_SECRET doit faire au moins 6 caractères."); return; }
+    const ident=buildIdentifier(f);
     const email=idToEmail(ident);
-    if(!email){ toast("Identifiant invalide (lettres, chiffres, tirets)."); return; }
+    if(!email){ toast("Identifiant invalide."); return; }
     const btn=document.getElementById("authGo");
     try{
       if(btn){ btn.disabled=true; btn.textContent="Connexion…"; }
       let { error } = await sb.auth.signInWithPassword({ email, password:pw });
       if(error){
-        /* Compte inexistant → on le crée ; mauvais mot de passe → signUp échoue en « déjà inscrit » */
+        /* Compte inexistant → on le crée. (Un compte de test créé avec un autre
+           mot de passe échouera ici : le recréer avec un nouvel identifiant, ou
+           réinitialiser son mot de passe vers CLASS_SECRET côté Supabase.) */
         const up = await sb.auth.signUp({ email, password:pw });
         if(up.error){
-          if(/already|registered|exists/i.test(up.error.message||"")) throw new Error("Identifiant ou mot de passe incorrect.");
+          if(/already|registered|exists/i.test(up.error.message||"")) throw new Error("Cet identifiant existe déjà avec un autre mot de passe.");
           throw up.error;
         }
         if(!up.data || !up.data.session){
