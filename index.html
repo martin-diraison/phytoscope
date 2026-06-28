@@ -219,6 +219,7 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
 .authBtn:disabled{opacity:.6;cursor:default}
 .authBtn.ghost{background:transparent;color:var(--moss,#4c7a44);border-color:var(--line,#d6ddcf)}
 .authSync{color:var(--muted);font-size:.76rem;white-space:nowrap}
+.authNarrow{min-width:120px}
 @media(max-width:620px){.authBar{width:100%}.authInput{flex:1 1 auto;min-width:0}}
 </style>
 </head>
@@ -427,7 +428,7 @@ const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v31 · 2026-06-28";
+const APP_VERSION = "v32 · 2026-06-28";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 const byName = new Map(TAXA.map(t => [t.n, t]));
@@ -1114,29 +1115,52 @@ setTimeout(function(){try{if(window.__loadCorruption&&typeof toast==="function")
       if(b) b.addEventListener("click", signOut);
     } else {
       el.innerHTML =
-        '<input class="authInput" id="authEmail" type="email" inputmode="email" autocomplete="email" placeholder="votre@email.fr" aria-label="Adresse e-mail">'+
-        '<button class="authBtn" id="authSend">Recevoir un lien</button>';
-      const b=document.getElementById("authSend");
-      const inp=document.getElementById("authEmail");
-      if(b) b.addEventListener("click", sendMagicLink);
-      if(inp) inp.addEventListener("keydown", e=>{ if(e.key==="Enter") sendMagicLink(); });
+        '<input class="authInput authNarrow" id="authId" autocomplete="username" placeholder="identifiant" aria-label="Identifiant">'+
+        '<input class="authInput authNarrow" id="authPw" type="password" autocomplete="current-password" placeholder="mot de passe" aria-label="Mot de passe">'+
+        '<button class="authBtn" id="authGo">Se connecter</button>';
+      const go=document.getElementById("authGo");
+      const onEnter=e=>{ if(e.key==="Enter") signInWithIdentifier(); };
+      if(go) go.addEventListener("click", signInWithIdentifier);
+      const a=document.getElementById("authId"), p=document.getElementById("authPw");
+      if(a) a.addEventListener("keydown", onEnter);
+      if(p) p.addEventListener("keydown", onEnter);
     }
   }
 
-  async function sendMagicLink(){
-    const inp=document.getElementById("authEmail");
-    const email=(inp && inp.value || "").trim();
-    if(!email || email.indexOf("@")===-1){ toast("Saisir une adresse e-mail valide."); return; }
-    const btn=document.getElementById("authSend");
+  /* Identifiant → adresse e-mail interne (factice, non envoyée) */
+  function idToEmail(id){
+    const slug=String(id).trim().toLowerCase().replace(/[^a-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"");
+    return slug ? slug+"@phytoscope.local" : "";
+  }
+  async function signInWithIdentifier(){
+    if(!sb){ toast("Connexion en cours d'initialisation, réessayez."); return; }
+    const idEl=document.getElementById("authId"), pwEl=document.getElementById("authPw");
+    const ident=(idEl && idEl.value || "").trim();
+    const pw=(pwEl && pwEl.value || "");
+    if(!ident){ toast("Saisir un identifiant."); return; }
+    if(pw.length<6){ toast("Mot de passe : 6 caractères minimum."); return; }
+    const email=idToEmail(ident);
+    if(!email){ toast("Identifiant invalide (lettres, chiffres, tirets)."); return; }
+    const btn=document.getElementById("authGo");
     try{
-      if(btn){ btn.disabled=true; btn.textContent="Envoi…"; }
-      const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: REDIRECT_TO } });
-      if(error) throw error;
-      toast("Lien de connexion envoyé à "+email+". Vérifiez votre boîte mail.","ok");
+      if(btn){ btn.disabled=true; btn.textContent="Connexion…"; }
+      let { error } = await sb.auth.signInWithPassword({ email, password:pw });
+      if(error){
+        /* Compte inexistant → on le crée ; mauvais mot de passe → signUp échoue en « déjà inscrit » */
+        const up = await sb.auth.signUp({ email, password:pw });
+        if(up.error){
+          if(/already|registered|exists/i.test(up.error.message||"")) throw new Error("Identifiant ou mot de passe incorrect.");
+          throw up.error;
+        }
+        if(!up.data || !up.data.session){
+          toast("Compte créé, mais la connexion immédiate est bloquée : désactivez « Confirm email » dans Supabase.","err");
+        }
+      }
+      /* En cas de succès, onAuthStateChange déclenche l'affichage et la synchro. */
     }catch(e){
-      toast("Échec de l'envoi : "+(e && e.message || e),"err");
+      toast("Connexion : "+(e && e.message || e),"err");
     }finally{
-      if(btn){ btn.disabled=false; btn.textContent="Recevoir un lien"; }
+      if(btn){ btn.disabled=false; btn.textContent="Se connecter"; }
     }
   }
 
@@ -1215,9 +1239,9 @@ setTimeout(function(){try{if(window.__loadCorruption&&typeof toast==="function")
     if(!sb || !currentUser) return;
     clearTimeout(pushTimer);
     pushTimer=setTimeout(async ()=>{
-      try{ supaSet("Enregistrement…"); await supaPushAll(stateClone()); markSynced(); }
-      catch(e){ supaSet("Échec d'enregistrement"); toast("Enregistrement Supabase : "+(e && e.message || e),"err"); }
-    }, 1500);
+      try{ await supaPushAll(stateClone()); markSynced(); }
+      catch(e){ toast("Enregistrement Supabase : "+(e && e.message || e),"err"); }
+    }, 5000);
   }
   /* Hooks appelés depuis l'application (save() / suppression de relevé) */
   window.__supaOnLocalSave   = function(){ if(sb && currentUser) schedulePush(); };
