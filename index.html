@@ -408,9 +408,11 @@ const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v27 · 2026-06-27";
+const APP_VERSION = "v28 · 2026-06-27";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
+const byName = new Map(TAXA.map(t => [t.n, t]));
+function taxonOf(row){ if(row && row.name){ const t=byName.get(row.name); if(t) return t; } return (row && row.tid!=null) ? (byId.get(row.tid)||null) : null; }
 function norm(s){return (s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();}
 TAXA.forEach(t=>{t.nn=norm(t.n); t.ns=norm(t.s); t.q=(t.nn+" "+t.ns).trim();});
 function uid(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
@@ -436,7 +438,7 @@ function normalizeReleveForSync(r){
   r.updated_at=normalizeDateValue(r.updated_at||r.created_at);
   if(!r.device_id)r.device_id="legacy";
   if(r.site==null)r.site="";
-  r.rows.forEach(row=>{if(!row.line_id)row.line_id=uid();});
+  r.rows.forEach(row=>{if(!row.line_id)row.line_id=uid(); if(!row.name && row.tid!=null){const t=byId.get(row.tid); if(t)row.name=t.n;}});
   return r;
 }
 function normalizeAppStateForSync(s){
@@ -495,7 +497,11 @@ function mergeAppStates(local, remote){
 }
 function setStateWithoutDirty(next){suppressDirty=true; state=normalizeAppStateForSync(next); localStorage.setItem(STORE_KEY, JSON.stringify(state)); suppressDirty=false;}
 function loadState(){
-  try{const s=JSON.parse(localStorage.getItem(STORE_KEY)); if(s && Array.isArray(s.releves)) return normalizeAppStateForSync(s);}catch(e){}
+  const raw=localStorage.getItem(STORE_KEY);
+  try{const s=JSON.parse(raw); if(s && Array.isArray(s.releves)) return normalizeAppStateForSync(s);}catch(e){}
+  if(raw && raw.trim()){
+    try{const backupKey=STORE_KEY+"_secours_"+Date.now(); localStorage.setItem(backupKey, raw); console.warn("Données locales illisibles — copie de secours conservée sous", backupKey); window.__loadCorruption=backupKey;}catch(_){}
+  }
   const r=blankReleve("Relevé 1"); return {selectedId:r.id,releves:[r]};
 }
 function loadSyncState(){
@@ -514,7 +520,7 @@ function esc(s){return (s??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<"
 function fmt(x,d=2){return x==null||Number.isNaN(x)?"—":Number(x).toLocaleString("fr-FR",{maximumFractionDigits:d,minimumFractionDigits:0});}
 function pct(row){return row.mode==="pct"?Math.max(0,Math.min(100,parseFloat(row.cover)||0)):(BB[row.cover]??0);}
 function stratumOk(row, filter){return !filter || filter==="Toutes strates" || row.stratum===filter;}
-function rowsWithTaxa(rel, filter="Toutes strates"){return rel.rows.filter(r=>stratumOk(r,filter)).map(r=>({row:r,t:byId.get(r.tid)})).filter(x=>x.t);}
+function rowsWithTaxa(rel, filter="Toutes strates"){return rel.rows.filter(r=>stratumOk(r,filter)).map(r=>({row:r,t:taxonOf(r)})).filter(x=>x.t);}
 function stats(rel, filter="Toutes strates"){
   const rows=rowsWithTaxa(rel,filter); const out=[];
   GRADIENTS.forEach((g,i)=>{
@@ -577,7 +583,7 @@ function sciHtml(name){name=(name||"").trim(); if(!name)return ""; if(/^(sol nu|
 function renderRows(){const r=current(); const table=document.getElementById("rowsTable");
   if(!r.rows.length){table.innerHTML=`<tbody><tr><td><div class="empty">Aucune espèce saisie pour ce relevé.</div></td></tr></tbody>`;return;}
   table.innerHTML=`<thead><tr><th>Espèce</th><th>Synonyme / forme simplifiée</th><th>Strate</th><th class="num">Recouvrement</th><th class="num">% calcul</th><th class="noPrint"></th></tr></thead><tbody>`+
-  r.rows.map((row,idx)=>{const t=byId.get(row.tid)||{};return `<tr><td><strong>${t.n?sciHtml(t.n):"Taxon inconnu"}</strong></td><td class="small muted">${t.s?sciHtml(t.s):""}</td><td>${esc(row.stratum||"")}</td><td class="num">${row.mode==="pct"?fmt(row.cover)+" %":esc(row.cover)}</td><td class="num">${fmt(pct(row),2)}</td><td class="num noPrint"><button class="ghost" onclick="moveRow(${idx},-1)">↑</button><button class="ghost" onclick="moveRow(${idx},1)">↓</button><button class="ghost" onclick="removeRow(${idx})">Retirer</button></td></tr>`}).join("")+`</tbody>`;
+  r.rows.map((row,idx)=>{const t=taxonOf(row)||{};return `<tr><td><strong>${t.n?sciHtml(t.n):"Taxon inconnu"}</strong></td><td class="small muted">${t.s?sciHtml(t.s):""}</td><td>${esc(row.stratum||"")}</td><td class="num">${row.mode==="pct"?fmt(row.cover)+" %":esc(row.cover)}</td><td class="num">${fmt(pct(row),2)}</td><td class="num noPrint"><button class="ghost" onclick="moveRow(${idx},-1)">↑</button><button class="ghost" onclick="moveRow(${idx},1)">↓</button><button class="ghost" onclick="removeRow(${idx})">Retirer</button></td></tr>`}).join("")+`</tbody>`;
 }
 function renderSummary(){const r=current(); const rows=rowsWithTaxa(r); const cov=rows.reduce((a,x)=>a+pct(x.row),0); const withVals=rows.filter(({t})=>t.v.some(v=>v!=null)).length; const st=[...new Set(rows.map(x=>x.row.stratum||""))].filter(Boolean);
   const s=stats(r); const complete=s.filter(x=>x.n>0).length;
@@ -683,12 +689,12 @@ function renderCompare(){
 function searchTaxa(q){q=norm(q); if(q.length<2)return[]; const terms=q.split(" ").filter(Boolean); const res=[]; for(const t of TAXA){let score=999; if(t.nn.startsWith(q))score=0; else if(t.ns.startsWith(q))score=1; else if(terms.every(x=>t.nn.includes(x)))score=2; else if(terms.every(x=>t.q.includes(x)))score=3; else if(t.q.includes(q))score=5; if(score<999)res.push([score,t]);} return res.sort((a,b)=>a[0]-b[0] || a[1].n.localeCompare(b[1].n)).slice(0,14).map(x=>x[1]);}
 function showSuggestions(items){const box=suggestions; if(!items.length){box.classList.remove("open");box.innerHTML="";return;} box.innerHTML=items.map(t=>`<div class="suggestion" data-id="${t.id}"><b>${sciHtml(t.n)}</b><span>${t.s?sciHtml(t.s):""}</span></div>`).join(""); box.classList.add("open");}
 function selectTaxon(id){selectedTaxon=byId.get(Number(id)); if(!selectedTaxon)return; speciesSearch.value=selectedTaxon.n; if(selectedTaxon.id===-1 && rowStratum)rowStratum.value="Sans végétation"; document.getElementById("selectedTaxon").innerHTML=`Taxon sélectionné : <strong>${sciHtml(selectedTaxon.n)}</strong> <span class="muted">${selectedTaxon.s?sciHtml(selectedTaxon.s):""}</span>`; suggestions.classList.remove("open");}
-function addSelected(){if(!selectedTaxon && norm(speciesSearch.value)==="sol nu")selectedTaxon=byId.get(-1); if(!selectedTaxon){toast("Sélectionner une espèce ou « sol nu » dans la liste de recherche.");return;} const r=current(); const mode=coverMode.value; const cover=mode==="pct"?parseFloat(pctValue.value||0):bbValue.value; const stratum=selectedTaxon.id===-1?"Sans végétation":rowStratum.value; r.rows.push({line_id:uid(),tid:selectedTaxon.id,stratum,mode,cover}); touchReleve(r); selectedTaxon=null; speciesSearch.value=""; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; save(); renderAll();}
+function addSelected(){if(!selectedTaxon && norm(speciesSearch.value)==="sol nu")selectedTaxon=byId.get(-1); if(!selectedTaxon){toast("Sélectionner une espèce ou « sol nu » dans la liste de recherche.");return;} const r=current(); const mode=coverMode.value; const cover=mode==="pct"?parseFloat(pctValue.value||0):bbValue.value; const stratum=selectedTaxon.id===-1?"Sans végétation":rowStratum.value; r.rows.push({line_id:uid(),tid:selectedTaxon.id,name:selectedTaxon.n,stratum,mode,cover}); touchReleve(r); selectedTaxon=null; speciesSearch.value=""; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; save(); renderAll();}
 window.removeRow=function(idx){const r=current(); r.rows.splice(idx,1); touchReleve(r); save(); renderAll();}
 window.moveRow=function(idx,delta){const r=current(); const rows=r.rows; const j=idx+delta; if(j<0||j>=rows.length)return; [rows[idx],rows[j]]=[rows[j],rows[idx]]; touchReleve(r); save(); renderAll();}
 function updateMeta(){const r=current(); r.name=relName.value; r.date=relDate.value; r.observer=relObserver.value; r.site=(window.relSite?relSite.value:""); r.location=relLocation.value; r.area=relArea.value; r.notes=relNotes.value; touchReleve(r); save(); renderReleveSelect(); renderSummary(); renderCompare(); renderScatter();}
 function download(filename, text, mime="application/json"){const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:mime})); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function rowsCsv(){const lines=[["releve_id","releve_nom","site","date","observateur","localisation","surface","taxon_id","nom_scientifique","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>r.rows.forEach(row=>{const t=byId.get(row.tid)||{v:[]}; lines.push([r.id,r.name,r.site||"",r.date,r.observer,r.location,r.area,row.tid,t.n,t.s,row.stratum,row.mode,row.cover,pct(row),...GRADIENTS.map((g,i)=>t.v[i])]);})); return lines.map(line=>line.map(v=>`"${(v??"").toString().replace(/"/g,'""')}"`).join(";")).join("\n");}
+function rowsCsv(){const lines=[["releve_id","releve_nom","site","date","observateur","localisation","surface","taxon_id","nom_scientifique","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>r.rows.forEach(row=>{const t=taxonOf(row)||{v:[]}; lines.push([r.id,r.name,r.site||"",r.date,r.observer,r.location,r.area,row.tid,t.n,t.s,row.stratum,row.mode,row.cover,pct(row),...GRADIENTS.map((g,i)=>t.v[i])]);})); return lines.map(line=>line.map(v=>`"${(v??"").toString().replace(/"/g,'""')}"`).join(";")).join("\n");}
 
 
 function safeDate(s){try{return new Date(s).toLocaleString("fr-FR");}catch(e){return s||"—";}}
@@ -773,7 +779,7 @@ async function ensureGoogleSheetLinked(createIfMissing=true){
   return file.id;
 }
 function sheetRowsReleves(src=state){return [["releve_id","nom","site","date","observateur","localisation","surface","notes","nb_lignes","created_at","updated_at","device_id"]].concat((src.releves||[]).map(r=>[r.id,r.name||"",r.site||"",r.date||"",r.observer||"",r.location||"",r.area||"",r.notes||"",(r.rows||[]).length,r.created_at||"",r.updated_at||"",r.device_id||""]));}
-function sheetRowsLignes(src=state){const rows=[["ligne_id","releve_id","releve_nom","taxon_id","taxon","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule","sol_nu",...GRADIENTS.map(g=>g.label)]]; (src.releves||[]).forEach(r=>(r.rows||[]).forEach((row,i)=>{const t=byId.get(row.tid)||{n:"",s:"",v:[]}; rows.push([row.line_id||`${r.id}:${i+1}`,r.id,r.name||"",row.tid??"",t.n||"",t.s||"",row.stratum||"",row.mode||"",row.cover??"",pct(row),row.tid===-1?"oui":"",...GRADIENTS.map((g,j)=>t.v?.[j]??"")]);})); return rows;}
+function sheetRowsLignes(src=state){const rows=[["ligne_id","releve_id","releve_nom","taxon_id","taxon","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule","sol_nu",...GRADIENTS.map(g=>g.label)]]; (src.releves||[]).forEach(r=>(r.rows||[]).forEach((row,i)=>{const t=taxonOf(row)||{n:"",s:"",v:[]}; rows.push([row.line_id||`${r.id}:${i+1}`,r.id,r.name||"",row.tid??"",t.n||"",t.s||"",row.stratum||"",row.mode||"",row.cover??"",pct(row),row.tid===-1?"oui":"",...GRADIENTS.map((g,j)=>t.v?.[j]??"")]);})); return rows;}
 function sheetRowsSynthese(){const rows=[["releve_id","releve_nom","strate","gradient","code","moyenne_simple","moyenne_ponderee","ecart_type_simple","ecart_type_pondere","nb_taxons_utilises","nb_taxons_sans_indice","recouvrement_utilise"]]; state.releves.forEach(r=>stats(r,"Toutes strates").forEach(x=>rows.push([r.id,r.name||"","Toutes strates",x.g.label,x.g.short,x.mean??"",x.wmean??"",x.sd??"",x.wsd??"",x.n,x.missing,x.sw??""]))); return rows;}
 function sheetRowsParametres(){return [["cle","valeur"],["version_application",APP_VERSION],["source_indices","Baseflor simplifiée"],["mode_synchronisation","fusion_non_destructive_par_releve_id_et_updated_at"],["conversion_i","0.01"],["conversion_r","0.1"],["conversion_+","0.5"],["conversion_1","2.5"],["conversion_2","15"],["conversion_3","37.5"],["conversion_4","62.5"],["conversion_5","87.5"],["exporte_le",new Date().toISOString()]];}
 function sheetRowsEtat(src=state){const json=JSON.stringify(remoteJsonSnapshot(src)); const size=35000; const chunks=[]; for(let i=0;i<json.length;i+=size)chunks.push(json.slice(i,i+size)); return [["chunk_index","chunk_count","json_chunk"]].concat(chunks.map((c,i)=>[i+1,chunks.length,c]));}
@@ -805,7 +811,7 @@ async function reconstructStateFromSheetTables(id){
   relRows.slice(1).forEach(row=>{const id=get(row,"releve_id")||uid(); const rel={id,name:get(row,"nom")||"Sans nom",site:get(row,"site"),date:get(row,"date"),observer:get(row,"observateur"),location:get(row,"localisation"),area:get(row,"surface"),notes:get(row,"notes"),created_at:get(row,"created_at"),updated_at:get(row,"updated_at"),device_id:get(row,"device_id"),rows:[]}; normalizeReleveForSync(rel); map.set(id,rel);});
   if(lineRows.length>1){
     const h=lineRows[0].map(x=>norm(x).replace(/ /g,"_")); const ix=name=>h.indexOf(name); const gv=(r,name)=>{const i=ix(name); return i>=0?(r[i]||""):"";};
-    lineRows.slice(1).forEach(row=>{const rid=gv(row,"releve_id"); const rel=map.get(rid); if(!rel)return; const tid=parseInt(gv(row,"taxon_id"),10); rel.rows.push({line_id:gv(row,"ligne_id")||uid(),tid:Number.isFinite(tid)?tid:null,stratum:gv(row,"strate"),mode:gv(row,"mode_recouvrement"),cover:gv(row,"recouvrement_saisi")});});
+    lineRows.slice(1).forEach(row=>{const rid=gv(row,"releve_id"); const rel=map.get(rid); if(!rel)return; const tid=parseInt(gv(row,"taxon_id"),10); rel.rows.push({line_id:gv(row,"ligne_id")||uid(),tid:Number.isFinite(tid)?tid:null,name:gv(row,"taxon")||"",stratum:gv(row,"strate"),mode:gv(row,"mode_recouvrement"),cover:gv(row,"recouvrement_saisi")});});
   }
   const releves=[...map.values()]; return normalizeAppStateForSync({selectedId:releves[0]?.id||null,releves});
 }
@@ -1014,6 +1020,7 @@ function toast(msg, kind){
 }
 /* Numéro de version affiché dans l'en-tête (source unique : APP_VERSION) */
 (function(){try{var t=document.getElementById("appVersionTag"); if(t&&typeof APP_VERSION!=="undefined")t.textContent=APP_VERSION;}catch(e){}})();
+setTimeout(function(){try{if(window.__loadCorruption&&typeof toast==="function")toast("Sauvegarde locale illisible : une copie de secours a été conservée. N\u2019ajoutez rien avant d\u2019avoir récupéré vos données.","err");}catch(e){}},900);
 /* Liaison du sélecteur Braun-Blanquet segmenté avec le select masqué #bbValue.
    Le reste de l'application continue de lire #bbValue.value : aucune logique modifiée. */
 (function(){

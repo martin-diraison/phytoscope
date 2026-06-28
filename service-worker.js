@@ -1,4 +1,4 @@
-const CACHE_NAME = "releves-botaniques-pwa-v27-noms-italiques-20260627";
+const CACHE_NAME = "releves-botaniques-pwa-v28-cle-stable-20260627";
 const APP_SHELL = [
   "./",
   "./index.html",
