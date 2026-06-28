@@ -408,7 +408,7 @@ const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v26 · 2026-06-27";
+const APP_VERSION = "v27 · 2026-06-27";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 function norm(s){return (s||"").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();}
@@ -573,10 +573,11 @@ function legendFor(groups){return groups.map(grp=>`<span class="key"><span class
 function tipAttr(txt){return `class="tipPoint" tabindex="0" data-tip="${esc(String(txt||"").replace(/\s+/g," "))}"`;}
 
 function renderMeta(){const r=current(); relName.value=r.name||""; relDate.value=r.date||""; relObserver.value=r.observer||""; if(window.relSite)relSite.value=r.site||""; relLocation.value=r.location||""; relArea.value=r.area||""; relNotes.value=r.notes||"";}
+function sciHtml(name){name=(name||"").trim(); if(!name)return ""; if(/^(sol nu|sans végétation)$/i.test(name))return esc(name); const ranks=new Set(["subsp.","ssp.","var.","f.","cv."]); return name.split(/\s+/).map((w,i,a)=>{let it=false; if(i===0)it=true; else if(i===1&&/^[a-zà-ÿ×]/.test(w))it=true; else if(ranks.has(a[i-1])&&/^[a-zà-ÿ]/.test(w))it=true; return it?`<i>${esc(w)}</i>`:esc(w);}).join(" ");}
 function renderRows(){const r=current(); const table=document.getElementById("rowsTable");
   if(!r.rows.length){table.innerHTML=`<tbody><tr><td><div class="empty">Aucune espèce saisie pour ce relevé.</div></td></tr></tbody>`;return;}
   table.innerHTML=`<thead><tr><th>Espèce</th><th>Synonyme / forme simplifiée</th><th>Strate</th><th class="num">Recouvrement</th><th class="num">% calcul</th><th class="noPrint"></th></tr></thead><tbody>`+
-  r.rows.map((row,idx)=>{const t=byId.get(row.tid)||{};return `<tr><td><strong>${esc(t.n||"Taxon inconnu")}</strong></td><td class="small muted">${esc(t.s||"")}</td><td>${esc(row.stratum||"")}</td><td class="num">${row.mode==="pct"?fmt(row.cover)+" %":esc(row.cover)}</td><td class="num">${fmt(pct(row),2)}</td><td class="num noPrint"><button class="ghost" onclick="moveRow(${idx},-1)">↑</button><button class="ghost" onclick="moveRow(${idx},1)">↓</button><button class="ghost" onclick="removeRow(${idx})">Retirer</button></td></tr>`}).join("")+`</tbody>`;
+  r.rows.map((row,idx)=>{const t=byId.get(row.tid)||{};return `<tr><td><strong>${t.n?sciHtml(t.n):"Taxon inconnu"}</strong></td><td class="small muted">${t.s?sciHtml(t.s):""}</td><td>${esc(row.stratum||"")}</td><td class="num">${row.mode==="pct"?fmt(row.cover)+" %":esc(row.cover)}</td><td class="num">${fmt(pct(row),2)}</td><td class="num noPrint"><button class="ghost" onclick="moveRow(${idx},-1)">↑</button><button class="ghost" onclick="moveRow(${idx},1)">↓</button><button class="ghost" onclick="removeRow(${idx})">Retirer</button></td></tr>`}).join("")+`</tbody>`;
 }
 function renderSummary(){const r=current(); const rows=rowsWithTaxa(r); const cov=rows.reduce((a,x)=>a+pct(x.row),0); const withVals=rows.filter(({t})=>t.v.some(v=>v!=null)).length; const st=[...new Set(rows.map(x=>x.row.stratum||""))].filter(Boolean);
   const s=stats(r); const complete=s.filter(x=>x.n>0).length;
@@ -680,8 +681,8 @@ function renderCompare(){
   table.innerHTML=head1+head2+`<tbody>${body}</tbody>`;
 }
 function searchTaxa(q){q=norm(q); if(q.length<2)return[]; const terms=q.split(" ").filter(Boolean); const res=[]; for(const t of TAXA){let score=999; if(t.nn.startsWith(q))score=0; else if(t.ns.startsWith(q))score=1; else if(terms.every(x=>t.nn.includes(x)))score=2; else if(terms.every(x=>t.q.includes(x)))score=3; else if(t.q.includes(q))score=5; if(score<999)res.push([score,t]);} return res.sort((a,b)=>a[0]-b[0] || a[1].n.localeCompare(b[1].n)).slice(0,14).map(x=>x[1]);}
-function showSuggestions(items){const box=suggestions; if(!items.length){box.classList.remove("open");box.innerHTML="";return;} box.innerHTML=items.map(t=>`<div class="suggestion" data-id="${t.id}"><b>${esc(t.n)}</b><span>${esc(t.s||"")}</span></div>`).join(""); box.classList.add("open");}
-function selectTaxon(id){selectedTaxon=byId.get(Number(id)); if(!selectedTaxon)return; speciesSearch.value=selectedTaxon.n; if(selectedTaxon.id===-1 && rowStratum)rowStratum.value="Sans végétation"; document.getElementById("selectedTaxon").innerHTML=`Taxon sélectionné : <strong>${esc(selectedTaxon.n)}</strong> <span class="muted">${esc(selectedTaxon.s||"")}</span>`; suggestions.classList.remove("open");}
+function showSuggestions(items){const box=suggestions; if(!items.length){box.classList.remove("open");box.innerHTML="";return;} box.innerHTML=items.map(t=>`<div class="suggestion" data-id="${t.id}"><b>${sciHtml(t.n)}</b><span>${t.s?sciHtml(t.s):""}</span></div>`).join(""); box.classList.add("open");}
+function selectTaxon(id){selectedTaxon=byId.get(Number(id)); if(!selectedTaxon)return; speciesSearch.value=selectedTaxon.n; if(selectedTaxon.id===-1 && rowStratum)rowStratum.value="Sans végétation"; document.getElementById("selectedTaxon").innerHTML=`Taxon sélectionné : <strong>${sciHtml(selectedTaxon.n)}</strong> <span class="muted">${selectedTaxon.s?sciHtml(selectedTaxon.s):""}</span>`; suggestions.classList.remove("open");}
 function addSelected(){if(!selectedTaxon && norm(speciesSearch.value)==="sol nu")selectedTaxon=byId.get(-1); if(!selectedTaxon){toast("Sélectionner une espèce ou « sol nu » dans la liste de recherche.");return;} const r=current(); const mode=coverMode.value; const cover=mode==="pct"?parseFloat(pctValue.value||0):bbValue.value; const stratum=selectedTaxon.id===-1?"Sans végétation":rowStratum.value; r.rows.push({line_id:uid(),tid:selectedTaxon.id,stratum,mode,cover}); touchReleve(r); selectedTaxon=null; speciesSearch.value=""; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; save(); renderAll();}
 window.removeRow=function(idx){const r=current(); r.rows.splice(idx,1); touchReleve(r); save(); renderAll();}
 window.moveRow=function(idx,delta){const r=current(); const rows=r.rows; const j=idx+delta; if(j<0||j>=rows.length)return; [rows[idx],rows[j]]=[rows[j],rows[idx]]; touchReleve(r); save(); renderAll();}
