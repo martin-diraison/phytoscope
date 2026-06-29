@@ -1,4 +1,4 @@
-const CACHE_NAME = "phytoscope-pwa-v39-syncfix-20260629";
+const CACHE_NAME = "phytoscope-pwa-v41-rename-export-20260629";
 const APP_SHELL = [
   "./",
   "./index.html",

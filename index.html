@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
-  <title>Application de visualisation des relevés botaniques</title>
+  <title>PhytoScope</title>
   <!-- v14 : champ Site, gradients repliables, export comparaison, choix axes interactif, ergonomie mobile affinée -->
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#f6f3ed">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Relevés botaniques">
+  <meta name="apple-mobile-web-app-title" content="PhytoScope">
   <link rel="icon" type="image/svg+xml" href="./icons/icon.svg">
   <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
   <link rel="apple-touch-icon" href="./icons/icon-192.png">
@@ -59,7 +59,7 @@
     button,.button{cursor:pointer;padding:10px 13px;background:var(--brand);color:#fff;border-color:var(--brand);font-weight:700;box-shadow:0 3px 10px rgba(47,107,62,.10);transition:transform .12s ease, box-shadow .12s ease, background .12s ease} button:hover,.button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(47,107,62,.16)}
     button.secondary{background:#fff;color:var(--brandDark);border-color:#b9cfb7}.ghost{background:transparent;color:var(--brandDark);border-color:transparent;box-shadow:none}.danger{background:var(--danger);border-color:var(--danger)}
     input,select,textarea{padding:10px 12px;min-width:0;font-size:16px} textarea{width:100%;min-height:70px;resize:vertical}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 24px 0}.tab{background:#fff;color:var(--muted);border-color:var(--line)}.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;padding:14px 24px 0}.tab{background:#fff;color:var(--muted);border-color:var(--line)}.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}.tab-admin{opacity:.66;border-style:dashed}.tab.tab-admin .ti{display:inline-flex;width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}.tab-admin.active{opacity:1;border-style:solid}
     main{padding:22px 24px 45px;max-width:1480px;margin:0 auto}.view{display:none}.view.active{display:block}
     .grid{display:grid;grid-template-columns:360px 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.full{grid-column:1/-1}
     .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px}.card h2,.card h3{margin:0 0 12px;font-family:var(--display);font-weight:600;color:var(--brandDark);letter-spacing:-.01em}.card h2{font-size:1.24rem;position:relative;padding-left:14px}.card h2::before{content:"";position:absolute;left:0;top:.18em;bottom:.18em;width:4px;border-radius:3px;background:linear-gradient(180deg,var(--brand),var(--brandDark))}.card h3{font-size:1.02rem;color:var(--brand)}.muted{color:var(--muted)}.small{font-size:.86rem}.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 9px;background:var(--brand2);color:#244b2c;font-size:.82rem;font-weight:650}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}.field label{font-weight:650;font-size:.88rem;color:#334335}
@@ -233,8 +233,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
   <div class="appTitle">
     <img class="appLogo" src="./icons/icon.svg" alt="" aria-hidden="true">
     <div>
-      <h1>Application de visualisation des relevés botaniques</h1>
-      <p>Saisie des relevés phytosociologiques et la visualisation de leurs indices d'Ellenberg sur gradients et écogrammes. <strong class="betaBadge">version bêta · <span id="appVersionTag"></span></strong></p>
+      <h1>PhytoScope</h1>
+      <p>Application de saisie de relevés phytosociologiques et de visualisation d’indicateurs écologiques associés. <strong class="betaBadge">version bêta · <span id="appVersionTag"></span></strong></p>
     </div>
   </div>
   <div class="authBar" id="authBar" aria-live="polite"></div>
@@ -244,8 +244,8 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
   <button class="tab" data-view="gradients"><svg class="ti" viewBox="0 0 24 24"><path d="M4 18V6M4 8h13M4 13h9M4 18h16" stroke-linecap="round"/></svg><span class="tlong">Gradients</span><span class="tshort">Gradients</span></button>
   <button class="tab" data-view="scatter"><svg class="ti" viewBox="0 0 24 24"><path d="M4 4v16h16" stroke-linecap="round"/><circle cx="9" cy="14" r="1.6"/><circle cx="14" cy="9" r="1.6"/><circle cx="17" cy="13" r="1.6"/></svg><span class="tlong">Ecogrammes</span><span class="tshort">Écogr.</span></button>
   <button class="tab" data-view="compare"><svg class="ti" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16" stroke-linecap="round"/></svg><span class="tlong">Comparaison</span><span class="tshort">Comparer</span></button>
-  <button class="tab" data-view="data"><svg class="ti" viewBox="0 0 24 24"><path d="M12 4v9m0 0 4-4m-4 4-4-4M5 19h14" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tlong">Export / import</span><span class="tshort">Export</span></button>
   <button class="tab" data-view="refs"><svg class="ti" viewBox="0 0 24 24"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H18v15H7.5A2.5 2.5 0 0 0 5 20.5z" stroke-linejoin="round"/><path d="M5 20.5A2.5 2.5 0 0 1 7.5 18H18" stroke-linecap="round"/></svg><span class="tlong">Référentiels</span><span class="tshort">Réf.</span></button>
+  <button class="tab tab-admin" data-view="data"><svg class="ti" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke-linecap="round"/></svg><span class="tlong">Administrateur</span><span class="tshort">Admin</span></button>
 </nav>
 <main>
   <section id="entry" class="view active">
@@ -300,6 +300,18 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
       <h2>Synthèse du relevé actif</h2>
       <div id="summary" class="summary"></div>
     </div>
+    <div class="card noPrint">
+      <h2>Exporter mes relevés</h2>
+      <p class="muted">Télécharge tous tes relevés dans un fichier JSON autonome, métadonnées comprises (nom de l’application, version, date d’export). Pratique pour sauvegarder ou transférer ton travail.</p>
+      <div class="row"><button id="exportMine" class="secondary">Télécharger mes relevés (JSON)</button></div>
+    </div>
+    <div class="card noPrint">
+      <h2>Installer l’application</h2>
+      <p class="muted">Ajoute l’application à l’écran d’accueil pour l’ouvrir comme une appli, même hors connexion. Sur iPhone/iPad, l’installation se fait depuis Safari (Partager → Ajouter à l’écran d’accueil).</p>
+      <div class="row"><button id="installApp" class="secondary">Installer l’application</button></div>
+      <div id="installStatus" class="notice small installStatus">Statut : application web consultable depuis le navigateur. L’installation dépend du navigateur et du système.</div>
+    </div>
+
   </section>
 
   <section id="gradients" class="view">
@@ -357,9 +369,9 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
 
   <section id="data" class="view">
     <div class="screen-head">
-      <span class="eyebrow">Sauvegarde & partage</span>
-      <h1 class="h-screen">Données</h1>
-      <p>Export, import et synchronisation de vos relevés.</p>
+      <span class="eyebrow">Espace réservé</span>
+      <h1 class="h-screen">Administrateur</h1>
+      <p>Sauvegarde, import, synchronisation et maintenance de l’application.</p>
     </div>
 
     <div class="grid2">
@@ -382,10 +394,9 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
         <p class="syncHint"><strong>Synchronisation sécurisée :</strong> les relevés locaux et distants sont fusionnés par identifiant et date de modification ; les relevés non présents sur cet appareil ne sont plus supprimés du Google Sheet.</p>
       </div>
       <div class="card">
-        <h2>Installation smartphone</h2>
-        <p class="muted">L’application peut être ajoutée à l’écran d’accueil du smartphone depuis son URL GitHub Pages. Sur Android, le bouton ci-dessous déclenche l’installation si le navigateur la propose. Sur iPhone, utiliser Safari puis Partager → Ajouter à l’écran d’accueil.</p>
-        <div class="row noPrint"><button id="installApp" class="secondary">Installer l’application</button><button id="resetAppCache" class="ghost">Réinitialiser le cache de l’application</button></div>
-        <div id="installStatus" class="notice small installStatus">Statut : application web consultable depuis le navigateur. L’installation dépend du navigateur et du système.</div>
+        <h2>Maintenance</h2>
+        <p class="muted">Réinitialise les ressources mises en cache si l’application reste bloquée sur une ancienne version. Les relevés locaux et le Client ID sont conservés.</p>
+        <div class="row noPrint"><button id="resetAppCache" class="ghost">Réinitialiser le cache de l’application</button></div>
       </div>
       <div class="card"><h2>Export des relevés</h2><p class="muted">Export JSON autonome contenant les métadonnées et les lignes floristiques. Les valeurs Baseflor restent embarquées dans l’application.</p><div class="row"><button id="exportJson">Télécharger JSON</button><button class="secondary" id="exportCsv">Télécharger CSV lignes</button></div></div>
       <div class="card"><h2>Import de relevés</h2><p class="muted">Import d’un export JSON généré par cette application. L’import remplace les relevés actuellement stockés après confirmation.</p><input type="file" id="importJson" accept="application/json,.json"></div>
@@ -430,9 +441,10 @@ const GRADIENT_TERMS = {
 const STRATA = ["Toutes strates","Herbacée","Arbustive","Arborée","Bryo-lichénique","Sans végétation","Autre"];
 const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
+const ADMIN_PASSWORD = "admin"; let adminUnlocked = false;
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v39 · 2026-06-29";
+const APP_VERSION = "v41 · 2026-06-29";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 const byName = new Map(TAXA.map(t => [t.n, t]));
@@ -725,7 +737,7 @@ function rowsCsv(){const lines=[["releve_id","releve_nom","site","date","observa
 
 
 function safeDate(s){try{return new Date(s).toLocaleString("fr-FR");}catch(e){return s||"—";}}
-function remoteJsonSnapshot(src=state){const clone=normalizeAppStateForSync(stateClone(src)); clone._application="Application de visualisation des relevés botaniques"; clone._version=APP_VERSION; clone._sync_exported_at=new Date().toISOString(); return clone;}
+function remoteJsonSnapshot(src=state){const clone=normalizeAppStateForSync(stateClone(src)); clone._application="PhytoScope"; clone._version=APP_VERSION; clone._sync_exported_at=new Date().toISOString(); return clone;}
 function syncSetMessage(msg,cls="warn"){const el=document.getElementById("googleSyncStatus"); if(!el)return; el.className="syncStatus "+cls; el.innerHTML=msg;}
 function renderSyncPanel(){
   const client=document.getElementById("googleClientId"); if(client) client.value=syncState.clientId||"";
@@ -922,7 +934,7 @@ function exportCompareFodsFile(){const rows=getCompareTableRows(); if(!rows.leng
 async function exportSingleSvgPng(svg,filename){if(!svg){toast("Graphique introuvable.");return;} const img=await imageFromSvg(svg); const vb=(svg.getAttribute("viewBox")||"0 0 800 300").split(/\s+/).map(Number); const w=vb[2]||800,h=vb[3]||300,scale=2,pad=24; const canvas=document.createElement("canvas"); canvas.width=(w+pad*2)*scale; canvas.height=(h+pad*2)*scale; const ctx=canvas.getContext("2d"); ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,pad*scale,pad*scale,w*scale,h*scale); const a=document.createElement("a"); a.href=canvas.toDataURL("image/png"); a.download=filename; a.click();}
 
 function bind(){
- document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.view).classList.add("active"); renderAll();}));
+ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{ if(b.dataset.view==="data" && !adminUnlocked){ const pw=prompt("Accès administrateur — mot de passe :"); if(pw===null) return; if(pw!==ADMIN_PASSWORD){ toast("Mot de passe incorrect.","err"); return; } adminUnlocked=true; } document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById(b.dataset.view).classList.add("active"); renderAll();}));
  releveSelect.addEventListener("change",e=>{state.selectedId=e.target.value; save(); renderAll();});
  newReleve.addEventListener("click",()=>{const r=blankReleve(`Relevé ${state.releves.length+1}`); state.releves.push(r); state.selectedId=r.id; state.gradientSelectedIds=[r.id]; state.scatterSelectedIds=[r.id]; save(); renderAll();});
  duplicateReleve.addEventListener("click",()=>{const src=JSON.parse(JSON.stringify(current())); src.id=uid(); src.name=(src.name||"Relevé")+" — copie"; src.created_at=new Date().toISOString(); src.updated_at=src.created_at; src.device_id=getDeviceId(); (src.rows||[]).forEach(row=>row.line_id=uid()); state.releves.push(src); state.selectedId=src.id; state.gradientSelectedIds=[src.id]; state.scatterSelectedIds=[src.id]; save(); renderAll();});
@@ -950,6 +962,7 @@ function bind(){
  if(window.resetAppCache)resetAppCache.addEventListener("click",resetPwaCache);
  exportJson.addEventListener("click",()=>download(`releves_botaniques_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(state,null,2)));
  exportCsv.addEventListener("click",()=>download(`releves_botaniques_lignes_${new Date().toISOString().slice(0,10)}.csv`, rowsCsv(), "text/csv;charset=utf-8"));
+ if(window.exportMine) exportMine.addEventListener("click",()=>download(`mes_releves_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(remoteJsonSnapshot(state),null,2)));
  if(window.exportCompareCsv)exportCompareCsv.addEventListener("click",exportCompareCsvFile);
  if(window.exportCompareXls)exportCompareXls.addEventListener("click",exportCompareXlsFile);
  if(window.exportCompareFods)exportCompareFods.addEventListener("click",exportCompareFodsFile);
