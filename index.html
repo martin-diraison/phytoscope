@@ -277,9 +277,6 @@ header{display:flex;flex-direction:column;gap:10px;padding:16px 28px 14px;backgr
 .wetlandCards.wetlandRegReadable{grid-template-columns:1fr;gap:12px}
 .wetlandRegReadable .wetlandCard{padding:14px;border-radius:16px;background:#fff}
 .wetlandCardHeader{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px}
-.wetlandResultLine{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}
-.wetlandResultLine .metric{padding:8px;border-radius:12px}.wetlandResultLine .metric .label{line-height:1.15}
-.wetlandExplain{border-left:4px solid #c9ddc2;background:#f8fbf5;border-radius:12px;padding:9px 10px;margin:8px 0;color:#405143}
 .wetlandStratumLine strong{color:#253b29}
 .wetlandDivergenceList{margin-top:10px;display:grid;gap:6px}
 .wetlandDivergenceItem{border:1px solid #f0d0d5;background:#fff7f8;border-radius:12px;padding:8px 10px}
@@ -292,7 +289,6 @@ header{display:flex;flex-direction:column;gap:10px;padding:16px 28px 14px;backgr
 .wetlandRegIntro{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 14px}
 .wetlandRegStep{border:1px solid #dfe9da;background:#f8fbf5;border-radius:14px;padding:10px}
 .wetlandRegStep strong{display:block;color:#203522;margin-bottom:3px}
-.wetlandCard .metric .help{font-size:.75rem;color:#657369;margin-top:2px;line-height:1.2}
 .wetlandCrossSummary{border:1px solid #dfe9da;background:#f8fbf5;border-radius:14px;padding:10px;margin:0 0 10px;color:#304235}
 .wetlandSourceBox{margin-top:8px;padding:9px 11px;border:1px solid #dfe9da;background:#f8fbf5;border-radius:12px;color:#405143}
 .wetlandSourceBox p{margin:0 0 6px;line-height:1.42}.wetlandSourceBox p:last-child{margin-bottom:0}
@@ -305,25 +301,39 @@ header{display:flex;flex-direction:column;gap:10px;padding:16px 28px 14px;backgr
 .wetlandSingleCrossCard.div{border-color:#f3b3bd;background:#fff4f5}.wetlandSingleCrossCard.div .statusIcon{background:#ffe0e5;color:#9f1239}
 .wetlandSingleCrossCard.neutral{border-color:#d8e1d4;background:#f8fbf5}.wetlandSingleCrossCard.neutral .statusIcon{background:#e8efe4;color:#334155}
 .wetlandSingleCrossCard h4{margin:0 0 4px;font-size:1.05rem}.wetlandSingleCrossCard p{margin:0}.wetlandSingleCrossCard .countLine{margin-top:6px;color:#405143;font-weight:750}
-.wetlandRegHero{border-radius:16px;padding:12px 14px;margin:8px 0 12px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;border:1px solid #dfe9da;background:#f8fbf5}
-.wetlandRegHero.valide{border-color:#9fd4b5;background:linear-gradient(135deg,#eaf9ef,#ffffff)}
-.wetlandRegHero.non_valide{border-color:#d8dee6;background:linear-gradient(135deg,#f4f6f8,#ffffff)}
-.wetlandRegHero.insuffisant{border-color:#e5e7eb;background:#f8fafc}
-.wetlandRegHero .regScore{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;text-align:center;font-weight:950;line-height:1;background:#fff;border:1px solid #dfe9da;color:#253b29}
-.wetlandRegHero.valide .regScore{background:#dff5e8;border-color:#a8dabc;color:#146c43}
-.wetlandRegHero.non_valide .regScore{background:#eef2f6;border-color:#cfd8e3;color:#334155}
-.wetlandRegHero.insuffisant .regScore{background:#f3f4f6;color:#6b7280}
-.wetlandRegHero .regScore strong{font-size:1.35rem}.wetlandRegHero .regScore span{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-.wetlandRegHero h5{margin:0 0 3px;font-size:1.03rem;color:#203522}.wetlandRegHero p{margin:0;color:#405143}
-.wetlandRegGauge{position:relative;height:24px;border-radius:999px;background:linear-gradient(90deg,#edf2f4 0%,#e3e9e4 50%,#d6f0df 50%,#58ad79 100%);margin:10px 0 4px;overflow:hidden;border:1px solid #d6e2d2}
-.wetlandRegGauge .regFill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#a9b8ae,#1f8a5a);border-radius:999px;opacity:.78;box-shadow:inset -1px 0 0 rgba(255,255,255,.55)}
-.wetlandRegGaugeLabels{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:5px}
-.wetlandRegGaugeLabels span:nth-child(1){text-align:left;color:#64748b;font-size:.75rem;font-weight:700}
-.wetlandRegGaugeLabels span:nth-child(2){text-align:center;border:1px solid #c9ddc2;border-radius:999px;padding:2px 8px;color:#285332;background:#f8fbf5;font-weight:900;font-size:.75rem}
-.wetlandRegGaugeLabels span:nth-child(3){text-align:right;color:#176f54;font-size:.75rem;font-weight:700}
+/* Bloc unifié descriptif + résultats */
+.wetlandRegUnifiedWrap{border:1px solid #dfe9da;border-radius:14px;overflow:hidden;margin:10px 0 14px}
+.wetlandRegUnifiedWrap .wetlandRegIntro{border:none;border-radius:0;margin:0;gap:0;grid-template-columns:1fr auto 1fr auto 1fr;border-bottom:1px solid #dfe9da}
+.wetlandRegUnifiedWrap .wetlandRegStep{border:none;border-radius:0;border-right:1px solid #dfe9da;padding:11px 13px}
+.wetlandRegUnifiedWrap .wetlandRegStep:last-of-type{border-right:none}
+.wetlandRegArrow{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 8px;gap:3px;background:#f0f7f2;border-right:1px solid #dfe9da}
+.wetlandRegArrowLabel{font-size:.68rem;font-weight:850;color:#3d6e50;letter-spacing:.01em;text-align:center;line-height:1.3}
+#wetlandRegResults{background:#fff}
+.wetlandRegResultBlock{border-bottom:1px solid #dfe9da}
+.wetlandRegResultBlock:last-child{border-bottom:none}
+.wetlandRegResultLabel{padding:6px 12px;font-weight:700;font-size:.88rem;color:#334335;background:#fbfcf9;border-bottom:1px solid #eef2eb;display:flex;align-items:center;gap:8px}
+.wetlandRegResultRow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr}
+.wetlandRegResultCell{padding:12px 14px;display:flex;align-items:center;justify-content:center;border-right:1px solid #dfe9da}
+.wetlandRegResultCell:last-child{border-right:none}
+.wetlandRegResultArrow{display:flex;align-items:center;justify-content:center;padding:0 10px;color:#8ab99a;font-size:1rem;font-weight:900;border-right:1px solid #dfe9da}
+.wetlandRegBigNum{font-size:1.7rem;font-weight:900;font-family:var(--mono,monospace);color:#203522;line-height:1}
+.wetlandRegBigNum.valide{color:#146c43}
+.wetlandRegBigNum.non_valide{color:#334155}
+.wetlandRegBigNum.insuffisant{color:#6b7280}
+/* Encart de synthèse proéminent */
+.wetlandSynthesis{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;border-radius:14px;padding:14px 16px;margin:14px 0 0;border:2px solid #dfe9da;background:#f8fbf5}
+.wetlandSynthesis.valide{border-color:#9fd4b5;background:linear-gradient(135deg,#eaf9ef,#fff)}
+.wetlandSynthesis.non_valide{border-color:#c8d4df;background:linear-gradient(135deg,#f4f6f8,#fff)}
+.wetlandSynthesis.insuffisant{border-color:#e5e7eb;background:#f8fafc}
+.wetlandSynthesisIcon{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:1.3rem;font-weight:950;flex:0 0 auto}
+.wetlandSynthesis.valide .wetlandSynthesisIcon{background:#dff5e8;color:#146c43}
+.wetlandSynthesis.non_valide .wetlandSynthesisIcon{background:#eef2f6;color:#334155}
+.wetlandSynthesis.insuffisant .wetlandSynthesisIcon{background:#f3f4f6;color:#6b7280}
+.wetlandSynthesis strong{display:block;color:#203522;font-size:1rem;margin-bottom:3px}
+.wetlandSynthesis p{margin:0;color:#405143;font-size:.9rem}
 #wetlands{width:100%}
 #wetlands .card{padding-left:20px;padding-right:20px}
-@media(max-width:760px){.wetlandSummaryReadable{grid-template-columns:1fr 1fr}.wetlandGaugeLarge{padding:8px}.wetlandGaugeLarge svg{min-width:980px}.wetlandResultLine{grid-template-columns:1fr}.wetlandBlockHead{display:block}.wetlandRegReadable .wetlandCard{padding:10px}.wetlandRegIntro{grid-template-columns:1fr}.wetlandSingleCrossCard{grid-template-columns:1fr}.wetlandSingleCrossCard .statusIcon{width:36px;height:36px}.wetlandRegHero{grid-template-columns:1fr}.wetlandRegHero .regScore{width:64px;height:64px}}
+@media(max-width:760px){.wetlandSummaryReadable{grid-template-columns:1fr 1fr}.wetlandGaugeLarge{padding:8px}.wetlandGaugeLarge svg{min-width:980px}.wetlandBlockHead{display:block}.wetlandRegReadable .wetlandCard{padding:10px}.wetlandRegUnifiedWrap .wetlandRegIntro{grid-template-columns:1fr}.wetlandRegArrow{display:none}.wetlandSingleCrossCard{grid-template-columns:1fr}.wetlandSingleCrossCard .statusIcon{width:36px;height:36px}.wetlandRegResultRow{grid-template-columns:1fr}.wetlandRegResultArrow{display:none}.wetlandRegResultCell{border-right:none;border-bottom:1px solid #dfe9da}.wetlandRegResultCell:last-child{border-bottom:none}.wetlandSynthesis{grid-template-columns:1fr;gap:8px}.wetlandSynthesisIcon{display:none}}
 @media(max-width:420px){.wetlandGaugeLarge svg{min-width:900px}}
 </style>
 </head>
@@ -504,10 +514,15 @@ header{display:flex;flex-direction:column;gap:10px;padding:16px 28px 14px;backgr
               <div class="wetlandSourceBox small"><p>Ce critère utilise les recouvrements par strate. L'application ne retient pas toute la flore du relevé : elle sélectionne d'abord, dans chaque strate réglementaire, les espèces qui structurent le recouvrement, puis vérifie si au moins la moitié de cette liste retenue correspond à des espèces indicatrices de zones humides.</p><p><strong>Sources :</strong> arrêté du 24 juin 2008, annexe II, table A des espèces indicatrices de zones humides, et fiche OFB illustrant le protocole de placettes et de sélection des espèces dominantes. <a href="https://www.legifrance.gouv.fr/loda/id/JORFTEXT000019151510" target="_blank" rel="noopener">Arrêté sur Légifrance</a></p></div>
             </div>
           </div>
-          <div class="wetlandRegIntro">
-            <div class="wetlandRegStep"><strong>Espèces retenues</strong><span class="small muted">Liste courte calculée séparément dans chaque strate : les espèces sont triées par recouvrement décroissant ; on conserve celles qui permettent d'atteindre le seuil de 50 % du recouvrement de la strate, puis on ajoute toute espèce non retenue ayant au moins 20 % de recouvrement.</span></div>
-            <div class="wetlandRegStep"><strong>Indicatrices ZH</strong><span class="small muted">Parmi les espèces retenues, taxons reconnus dans la liste réglementaire des espèces caractéristiques de zones humides. Une même espèce retenue dans deux strates est comptée deux fois, conformément à la logique du protocole.</span></div>
-            <div class="wetlandRegStep"><strong>Ratio</strong><span class="small muted">Nombre d'espèces indicatrices ZH retenues divisé par le nombre total d'espèces retenues. Si ce ratio est au moins égal à 50 %, le critère flore réglementaire est validé.</span></div>
+          <div class="wetlandRegUnifiedWrap">
+            <div class="wetlandRegIntro">
+              <div class="wetlandRegStep"><strong>Espèces retenues</strong><span class="small muted">Liste courte calculée séparément dans chaque strate : les espèces sont triées par recouvrement décroissant ; on conserve celles qui permettent d'atteindre le seuil de 50 % du recouvrement de la strate, puis on ajoute toute espèce non retenue ayant au moins 20 % de recouvrement.</span></div>
+              <div class="wetlandRegArrow"><svg viewBox="0 0 28 56" width="28" height="56" aria-hidden="true"><path d="M5 28 L23 28 M15 19 L23 28 L15 37" stroke="#6aab82" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="wetlandRegArrowLabel">filtrage<br>liste ZH</span></div>
+              <div class="wetlandRegStep"><strong>Indicatrices ZH</strong><span class="small muted">Parmi les espèces retenues, taxons reconnus dans la liste réglementaire des espèces caractéristiques de zones humides. Une même espèce retenue dans deux strates est comptée deux fois, conformément à la logique du protocole.</span></div>
+              <div class="wetlandRegArrow"><svg viewBox="0 0 28 56" width="28" height="56" aria-hidden="true"><path d="M5 28 L23 28 M15 19 L23 28 L15 37" stroke="#6aab82" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="wetlandRegArrowLabel">÷ retenues<br>× 100</span></div>
+              <div class="wetlandRegStep"><strong>Ratio</strong><span class="small muted">Nombre d'espèces indicatrices ZH retenues divisé par le nombre total d'espèces retenues. Si ce ratio est au moins égal à 50 %, le critère flore réglementaire est validé.</span></div>
+            </div>
+            <div id="wetlandRegResults"></div>
           </div>
           <div id="wetlandRegGaugeSvg" class="wetlandGaugeWrap wetlandGaugeLarge" style="margin:14px 0 18px"></div>
           <div id="wetlandRegCards" class="wetlandCards wetlandRegReadable"></div>
@@ -1309,6 +1324,17 @@ function renderWetlandGauge(diags){
 }
 function regStatusLabel(status){return status==="valide"?"Critère flore validé":status==="non_valide"?"Critère flore non validé":"Insuffisant";}
 function concordLabel(c){return c==="divergence"?"Divergence à expertiser":c&&c.startsWith("coherent")?"Cohérent":c==="insuffisant"?"Insuffisant":"Transition";}
+function renderWetlandRegResults(diags){
+  const box=document.getElementById("wetlandRegResults"); if(!box)return;
+  if(!diags.length){box.innerHTML='';return;}
+  box.innerHTML=diags.map(d=>{
+    const pctv=d.reg.ratio==null?null:Math.round(d.reg.ratio*100);
+    const cls=d.reg.status==="valide"?"valide":d.reg.status==="non_valide"?"non_valide":"insuffisant";
+    const dot=`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${releveColor(d.rel)};flex-shrink:0"></span>`;
+    const badge=`<span class="wetlandBadge ${cls}" style="font-size:.72rem;padding:2px 8px">${regStatusLabel(d.reg.status)}</span>`;
+    return `<div class="wetlandRegResultBlock"><div class="wetlandRegResultLabel">${dot}${esc(releveLabel(d.rel))}${badge}</div><div class="wetlandRegResultRow"><div class="wetlandRegResultCell"><span class="wetlandRegBigNum">${d.reg.total||0}</span></div><div class="wetlandRegResultArrow">→</div><div class="wetlandRegResultCell"><span class="wetlandRegBigNum">${d.reg.wet||0}</span></div><div class="wetlandRegResultArrow">→</div><div class="wetlandRegResultCell"><span class="wetlandRegBigNum ${cls}">${pctv==null?'—':pctv+' %'}</span></div></div></div>`;
+  }).join('');
+}
 function renderWetlandRegGaugeSvg(diags){
   const box=document.getElementById("wetlandRegGaugeSvg"); if(!box)return;
   const valid=diags.filter(d=>d.reg.ratio!=null);
@@ -1339,6 +1365,7 @@ function renderWetlands(){
   const count=diags.length, hum=diags.filter(d=>d.ell.status==="humide").length, inc=diags.filter(d=>d.ell.status==="incertain").length, reg=diags.filter(d=>d.reg.status==="valide").length, div=diags.filter(d=>d.concord==="divergence").length;
   if(summary){ summary.innerHTML=""; summary.style.display="none"; }
   renderWetlandGauge(diags);
+  renderWetlandRegResults(diags);
   renderWetlandRegGaugeSvg(diags);
   const cards=document.getElementById("wetlandRegCards");
   if(cards){
@@ -1352,7 +1379,8 @@ function renderWetlands(){
       }).join("");
       const regTitle=d.reg.status==="valide"?"Critère flore réglementaire validé":d.reg.status==="non_valide"?"Critère flore réglementaire non validé":"Critère flore réglementaire insuffisant";
       const regSub=d.reg.total?`${d.reg.wet||0} espèce(s) indicatrice(s) ZH sur ${d.reg.total||0} espèce(s) retenue(s). Seuil attendu : 50 %.`:"Aucune espèce retenue exploitable pour ce critère.";
-      return `<div class="wetlandCard"><div class="wetlandCardHeader"><div><h4>${esc(d.rel.name||'Sans nom')}</h4><div class="small muted">${esc(d.rel.site||d.rel.location||'')}</div></div><span class="wetlandBadge ${cls}">${regStatusLabel(d.reg.status)}</span></div><div class="wetlandRegHero ${cls}"><div class="regScore"><strong>${d.reg.ratio==null?'—':pctv+'%'}</strong><span>ratio ZH</span></div><div><h5>${esc(regTitle)}</h5><p class="small">${esc(regSub)}</p><div class="wetlandRegGauge" aria-label="Ratio réglementaire"><span class="regFill" style="width:${Math.min(100,pctv)}%"></span></div><div class="wetlandRegGaugeLabels"><span>0 %</span><span>seuil 50 %</span><span>100 %</span></div></div></div><div class="wetlandExplain">${esc(decision)}</div><div class="wetlandResultLine"><div class="metric"><div class="label">Espèces retenues</div><div class="value">${d.reg.total||0}</div><div class="help">Dominantes sélectionnées par strate</div></div><div class="metric"><div class="label">Indicatrices ZH</div><div class="value">${d.reg.wet||0}</div><div class="help">Parmi les espèces retenues</div></div><div class="metric"><div class="label">Ratio réglementaire</div><div class="value">${d.reg.ratio==null?'—':pctv+' %'}</div><div class="help">Validation si ≥ 50 %</div></div></div><div class="small muted" style="margin-top:6px">Les pastilles vertes indiquent les taxons reconnus comme indicateurs ZH dans la liste réglementaire.</div><div class="wetlandStrata">${strata}</div></div>`;
+      const synthIcon=d.reg.status==="valide"?"✓":d.reg.status==="non_valide"?"✗":"?";
+      return `<div class="wetlandCard"><div class="wetlandCardHeader"><div><h4>${esc(d.rel.name||'Sans nom')}</h4><div class="small muted">${esc(d.rel.site||d.rel.location||'')}</div></div></div><p class="small muted" style="margin:2px 0 8px">Les pastilles vertes indiquent les taxons reconnus comme indicateurs ZH dans la liste réglementaire.</p><div class="wetlandStrata">${strata}</div><div class="wetlandSynthesis ${cls}"><div class="wetlandSynthesisIcon">${synthIcon}</div><div><strong>${esc(regTitle)}</strong><p>${esc(decision)}</p></div></div></div>`;
     }).join("")||'<div class="empty">Sélectionner au moins un relevé.</div>';
   }
   const matrix=document.getElementById("wetlandMatrix");
