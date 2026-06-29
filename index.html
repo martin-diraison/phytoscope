@@ -227,8 +227,32 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
 @media(max-width:620px){.authMini{flex:1 1 40%;width:auto}.authSelect{flex:1 1 40%}}
 @media(max-width:620px){.authBar{width:100%}.authInput{flex:1 1 auto;min-width:0}}
 </style>
+<style id="v42-topbar">
+:root{--topbar-h:132px}
+.topbar{position:sticky;top:0;z-index:60;background:var(--bg);box-shadow:0 6px 18px rgba(20,50,30,.05)}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px 28px 12px}
+.appTitle{flex:1 1 320px;min-width:0}
+.appTitle>div{min-width:0}
+header p{font-size:.9rem;line-height:1.34;max-width:760px}
+.headerActions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:0 0 auto}
+.installBtn{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;white-space:nowrap}
+.installBtn svg{flex:0 0 auto}
+.installStatusInline{font-size:.78rem;color:var(--muted);max-width:240px;line-height:1.3}
+.installStatusInline .installBadge{padding:3px 8px;font-weight:700}
+.tabs{padding:8px 24px 10px}
+.addbar{top:calc(var(--topbar-h) + 8px)}
+@media(max-width:760px){
+  .topbar{box-shadow:0 4px 14px rgba(20,50,30,.07)}
+  header{padding:12px 14px 9px;gap:9px}
+  .headerActions{gap:7px}
+  .installBtn span{display:none}
+  .installBtn{padding:8px 9px}
+  .installStatusInline{display:none}
+}
+</style>
 </head>
 <body>
+<div class="topbar">
 <header>
   <div class="appTitle">
     <img class="appLogo" src="./icons/icon.svg" alt="" aria-hidden="true">
@@ -237,7 +261,14 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
       <p>Application de saisie de relevés phytosociologiques et de visualisation d’indicateurs écologiques associés. <strong class="betaBadge">version bêta · <span id="appVersionTag"></span></strong></p>
     </div>
   </div>
-  <div class="authBar" id="authBar" aria-live="polite"></div>
+  <div class="headerActions">
+    <button id="installApp" class="secondary installBtn" type="button" title="Installer l’application sur l’appareil">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M11 18.5h2"/></svg>
+      <span>Installer</span>
+    </button>
+    <div class="authBar" id="authBar" aria-live="polite"></div>
+    <span id="installStatus" class="installStatusInline" hidden></span>
+  </div>
 </header>
 <nav class="tabs noPrint">
   <button class="tab active" data-view="entry"><svg class="ti" viewBox="0 0 24 24"><path d="M12 20s-7-4-7-10a7 7 0 0 1 14 0c0 6-7 10-7 10Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 20V9" stroke-linecap="round"/></svg><span class="tlong">Saisie du relevé</span><span class="tshort">Saisie</span></button>
@@ -247,11 +278,12 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
   <button class="tab" data-view="refs"><svg class="ti" viewBox="0 0 24 24"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H18v15H7.5A2.5 2.5 0 0 0 5 20.5z" stroke-linejoin="round"/><path d="M5 20.5A2.5 2.5 0 0 1 7.5 18H18" stroke-linecap="round"/></svg><span class="tlong">Référentiels</span><span class="tshort">Réf.</span></button>
   <button class="tab tab-admin" data-view="data"><svg class="ti" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke-linecap="round"/></svg><span class="tlong">Administrateur</span><span class="tshort">Admin</span></button>
 </nav>
+</div>
 <main>
   <section id="entry" class="view active">
     <div class="screen-head">
       <span class="eyebrow">Relevé actif</span>
-      <h1 class="h-screen">Saisie du relevé</h1>
+      <h1 class="h-screen" id="entryTitle">Saisie du relevé</h1>
     </div>
 
     <div class="releveBar noPrint">
@@ -302,14 +334,13 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
     </div>
     <div class="card noPrint">
       <h2>Exporter mes relevés</h2>
-      <p class="muted">Télécharge tous tes relevés dans un fichier JSON autonome, métadonnées comprises (nom de l’application, version, date d’export). Pratique pour sauvegarder ou transférer ton travail.</p>
-      <div class="row"><button id="exportMine" class="secondary">Télécharger mes relevés (JSON)</button></div>
-    </div>
-    <div class="card noPrint">
-      <h2>Installer l’application</h2>
-      <p class="muted">Ajoute l’application à l’écran d’accueil pour l’ouvrir comme une appli, même hors connexion. Sur iPhone/iPad, l’installation se fait depuis Safari (Partager → Ajouter à l’écran d’accueil).</p>
-      <div class="row"><button id="installApp" class="secondary">Installer l’application</button></div>
-      <div id="installStatus" class="notice small installStatus">Statut : application web consultable depuis le navigateur. L’installation dépend du navigateur et du système.</div>
+      <p class="muted">Télécharge tous tes relevés, métadonnées comprises. Le <strong>JSON</strong> est le format de sauvegarde/transfert fidèle (réimportable). Les formats tableur (<strong>CSV</strong>, <strong>Excel</strong>, <strong>LibreOffice</strong>) sont destinés à l’analyse : ils contiennent le cortège espèce par espèce et la synthèse par gradient (Excel et LibreOffice incluent en plus une feuille « Relevés » et une feuille « Synthèse »).</p>
+      <div class="row">
+        <button id="exportMine" class="secondary">JSON (sauvegarde)</button>
+        <button id="exportRelevesCsv" class="secondary">CSV</button>
+        <button id="exportRelevesXls" class="secondary">Excel</button>
+        <button id="exportRelevesFods" class="secondary">LibreOffice</button>
+      </div>
     </div>
 
   </section>
@@ -444,7 +475,7 @@ const STORE_KEY = "botano_baseflor_releves_v03";
 const ADMIN_PASSWORD = "admin"; let adminUnlocked = false;
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v41 · 2026-06-29";
+const APP_VERSION = "v42 · 2026-06-29";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 const byName = new Map(TAXA.map(t => [t.n, t]));
@@ -615,7 +646,8 @@ function renderIndexControl(keyName,boxId){
 function legendFor(groups){return groups.map(grp=>`<span class="key"><span class="colorDot" style="background:${releveColor(grp.rel)}"></span>${esc(releveLabel(grp.rel))}</span>`).join("");}
 function tipAttr(txt){return `class="tipPoint" tabindex="0" data-tip="${esc(String(txt||"").replace(/\s+/g," "))}"`;}
 
-function renderMeta(){const r=current(); relName.value=r.name||""; relDate.value=r.date||""; relObserver.value=r.observer||""; if(window.relSite)relSite.value=r.site||""; relLocation.value=r.location||""; relArea.value=r.area||""; relNotes.value=r.notes||"";}
+function setEntryTitle(r){const el=document.getElementById("entryTitle"); if(!el)return; const nm=(r&&r.name&&r.name.trim())?r.name.trim():"Relevé sans nom"; el.textContent=nm;}
+function renderMeta(){const r=current(); relName.value=r.name||""; relDate.value=r.date||""; relObserver.value=r.observer||""; if(window.relSite)relSite.value=r.site||""; relLocation.value=r.location||""; relArea.value=r.area||""; relNotes.value=r.notes||""; setEntryTitle(r);}
 function sciHtml(name){name=(name||"").trim(); if(!name)return ""; if(/^(sol nu|sans végétation)$/i.test(name))return esc(name); const ranks=new Set(["subsp.","ssp.","var.","f.","cv."]); return name.split(/\s+/).map((w,i,a)=>{let it=false; if(i===0)it=true; else if(i===1&&/^[a-zà-ÿ×]/.test(w))it=true; else if(ranks.has(a[i-1])&&/^[a-zà-ÿ]/.test(w))it=true; return it?`<i>${esc(w)}</i>`:esc(w);}).join(" ");}
 function renderRows(){const r=current(); const table=document.getElementById("rowsTable");
   if(!r.rows.length){table.innerHTML=`<tbody><tr><td><div class="empty">Aucune espèce saisie pour ce relevé.</div></td></tr></tbody>`;return;}
@@ -673,7 +705,7 @@ function gradientSpreadPositions(items, sx, baseY){
   return out.sort((a,b)=>a.idx-b.idx);
 }
 function gradientCard(i, groups, labelMode){const g=GRADIENTS[i], W=760, p=58, rowGap=58, H=Math.max(210,132+groups.length*rowGap+54), top=48, bottom=H-54; const sx=v=>scale(v,g,W,p); let sdBands=[], meanLines=[], species=[], labels=[], groupNames=[];
- groups.forEach((grp,gi)=>{const st=grp.stats[i], color=releveColor(grp.rel), y=96+gi*rowGap; groupNames.push(`<text x="12" y="${y+4}" font-size="10" font-weight="700" fill="${color}">${esc(releveLabel(grp.rel))}</text>`); if(st.wmean!=null){const a=Math.max(g.min,st.wmean-(st.wsd||0)), b=Math.min(g.max,st.wmean+(st.wsd||0)); sdBands.push(`<rect x="${sx(a)}" y="${y-18}" width="${Math.max(1,sx(b)-sx(a))}" height="36" rx="7" fill="${color}" opacity=".16" pointer-events="none"></rect>`); meanLines.push(`<line x1="${sx(st.wmean)}" y1="${top}" x2="${sx(st.wmean)}" y2="${bottom}" stroke="${color}" stroke-width="3.4" opacity=".96" pointer-events="none"></line>`);} if(st.mean!=null){meanLines.push(`<line x1="${sx(st.mean)}" y1="${top}" x2="${sx(st.mean)}" y2="${bottom}" stroke="${color}" stroke-width="1.8" stroke-dasharray="4 4" opacity=".62" pointer-events="none"></line>`);} const autoMode=(labelMode==="short" && grp.rows.length>24)?"initials":labelMode; const drawable=[]; grp.rows.forEach(({row,t},k)=>{const v=t.v[i]; if(v==null)return; drawable.push({row,t,k,v,r:Math.max(2.8,Math.min(7.5,Math.sqrt(pct(row))))});}); gradientSpreadPositions(drawable,sx,y).forEach(o=>{const tip=`${o.t.n} — recouvrement ${fmt(pct(o.row),2)} %`; species.push(`<circle ${tipAttr(tip)} cx="${o.cx.toFixed(1)}" cy="${o.cy.toFixed(1)}" r="${o.r}" fill="${color}" opacity=".84" stroke="#fff" stroke-width="1.2"></circle>`); if(autoMode!=="none" && autoMode!=="hover"){const lx=Math.min(W-p+18,o.cx+o.r+5), ly=o.cy-5; labels.push(`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" fill="#28352a" opacity=".86">${esc(taxonLabel(o.t.n,autoMode))}</text>`);}});});
+ groups.forEach((grp,gi)=>{const st=grp.stats[i], color=releveColor(grp.rel), y=96+gi*rowGap; groupNames.push(`<text x="12" y="${y+4}" font-size="10" font-weight="700" fill="${color}">${esc(releveLabel(grp.rel))}</text>`); if(st.wmean!=null){const a=Math.max(g.min,st.wmean-(st.wsd||0)), b=Math.min(g.max,st.wmean+(st.wsd||0)); sdBands.push(`<rect x="${sx(a)}" y="${y-18}" width="${Math.max(1,sx(b)-sx(a))}" height="36" rx="7" fill="${color}" opacity=".16" pointer-events="none"></rect>`); meanLines.push(`<line x1="${sx(st.wmean)}" y1="${top}" x2="${sx(st.wmean)}" y2="${bottom}" stroke="${color}" stroke-width="3.4" opacity=".96" pointer-events="none"></line>`);} if(st.mean!=null){meanLines.push(`<line x1="${sx(st.mean)}" y1="${top}" x2="${sx(st.mean)}" y2="${bottom}" stroke="${color}" stroke-width="1.8" stroke-dasharray="4 4" opacity=".62" pointer-events="none"></line>`);} const autoMode=(labelMode==="short" && grp.rows.length>24)?"initials":labelMode; const drawable=[]; grp.rows.forEach(({row,t},k)=>{const v=t.v[i]; if(v==null)return; drawable.push({row,t,k,v,r:Math.max(2.8,Math.min(7.5,Math.sqrt(pct(row))))});}); gradientSpreadPositions(drawable,sx,y).forEach(o=>{const tip=`${o.t.n} — recouvrement ${fmt(pct(o.row),2)} %`; species.push(`<circle ${tipAttr(tip)} cx="${o.cx.toFixed(1)}" cy="${o.cy.toFixed(1)}" r="${o.r}" fill="${color}" opacity=".84" stroke="#fff" stroke-width="1.2"></circle>`); if(autoMode!=="none" && autoMode!=="hover"){const lx=Math.min(W-p+18,o.cx+o.r+5), ly=o.cy-5; labels.push(`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="9.5" fill="#28352a" opacity=".86" font-style="italic">${esc(taxonLabel(o.t.n,autoMode))}</text>`);}});});
  const ticks=axisValueLabels(g,sx,H-34,H-18); const title=groups.length>1?`${groups.length} relevés sélectionnés`:`n=${groups[0].stats[i].n} · m=${fmt(groups[0].stats[i].mean)} · mp=${fmt(groups[0].stats[i].wmean)} · σp=${fmt(groups[0].stats[i].wsd)}`;
  return `<details class="gradientCard" open data-gradient-key="${esc(g.key)}"><summary><strong>${esc(g.short)} · ${esc(g.label)}</strong><span class="gradientActions"><span class="small muted">${esc(title)}</span><button class="secondary gradExportBtn noPrint" type="button" data-export-gradient="${esc(g.key)}">PNG</button></span></summary><div class="gradientCardBody"><div class="svgBox"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gradient ${esc(g.label)}"><rect x="0" y="0" width="${W}" height="${H}" rx="14" fill="#fbfcf9"/><line x1="${p}" y1="${top}" x2="${W-p}" y2="${top}" stroke="#aebbad" stroke-width="1.5"/><line x1="${p}" y1="${bottom}" x2="${W-p}" y2="${bottom}" stroke="#dce5d8" stroke-width="1"/>${factorRampSvg(g,p,W-p,bottom)}${ticks}${groupNames.join("")}${sdBands.join("")}${meanLines.join("")}${species.join("")}${labels.join("")}</svg></div></div></details>`;
 }
@@ -689,10 +721,10 @@ function leaderLines(pts){return pts.map(pt=>{const d=Math.hypot((pt.px??pt.ox)-
 
 function weightedMean2D(items){const valid=items.filter(o=>Number.isFinite(o.x)&&Number.isFinite(o.y)); if(!valid.length)return null; let sw=0,sxv=0,syv=0; valid.forEach(o=>{const w=Math.max(0,Number(o.w)||0); sw+=w; sxv+=o.x*w; syv+=o.y*w;}); if(sw<=0){return {x:valid.reduce((s,o)=>s+o.x,0)/valid.length,y:valid.reduce((s,o)=>s+o.y,0)/valid.length,n:valid.length,weight:0};} return {x:sxv/sw,y:syv/sw,n:valid.length,weight:sw};}
 function weightedEllipseSvg(screenItems,color,label){const valid=screenItems.filter(o=>Number.isFinite(o.x)&&Number.isFinite(o.y)); if(valid.length<2)return ""; let sw=0,mx=0,my=0; valid.forEach(o=>{const w=Math.max(0,Number(o.w)||0)||1; sw+=w; mx+=o.x*w; my+=o.y*w;}); mx/=sw; my/=sw; let cxx=0,cyy=0,cxy=0; valid.forEach(o=>{const w=Math.max(0,Number(o.w)||0)||1, dx=o.x-mx, dy=o.y-my; cxx+=w*dx*dx; cyy+=w*dy*dy; cxy+=w*dx*dy;}); cxx/=sw; cyy/=sw; cxy/=sw; const tr=cxx+cyy, det=cxx*cyy-cxy*cxy, disc=Math.sqrt(Math.max(0,tr*tr/4-det)); let l1=Math.max(0,tr/2+disc), l2=Math.max(0,tr/2-disc); if(l1<1 && l2<1)return ""; const angle=0.5*Math.atan2(2*cxy,cxx-cyy)*180/Math.PI; const rx=Math.max(6,Math.sqrt(l1)), ry=Math.max(4,Math.sqrt(l2)); return `<ellipse ${tipAttr(label+` — dispersion pondérée ± 1 σ`)} cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" transform="rotate(${angle.toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)})" fill="none" stroke="${color}" stroke-width="2" stroke-dasharray="5 4" stroke-opacity=".55"></ellipse>`;}
-function placeScatterLabels(pts,sx,sy,W,H,m){const boxes=[], out=[]; const sorted=pts.slice().sort((a,b)=>b.r-a.r).slice(0,140); for(const pt of sorted){const label=pt.short||""; if(!label)continue; const baseX=pt.px??sx(pt.x), baseY=pt.py??sy(pt.y); let x=baseX+pt.r+5, y=baseY-6, w=Math.max(18,label.length*5.8), h=12; if(x+w>W-m.r)x=baseX-pt.r-w-5; if(y-h<m.t)y=baseY+pt.r+12; const b={x,y:y-h,w,h}; if(b.x<m.l||b.x+b.w>W-m.r||b.y<m.t||b.y+b.h>H-m.b)continue; if(boxes.some(a=>!(a.x+a.w<b.x||b.x+b.w<a.x||a.y+a.h<b.y||b.y+b.h<a.y)))continue; boxes.push(b); out.push(`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="13" fill="#28352a" opacity=".9">${esc(label)}</text>`);} return out.join("");}
+function placeScatterLabels(pts,sx,sy,W,H,m){const boxes=[], out=[]; const sorted=pts.slice().sort((a,b)=>b.r-a.r).slice(0,140); for(const pt of sorted){const label=pt.short||""; if(!label)continue; const baseX=pt.px??sx(pt.x), baseY=pt.py??sy(pt.y); let x=baseX+pt.r+5, y=baseY-6, w=Math.max(18,label.length*5.8), h=12; if(x+w>W-m.r)x=baseX-pt.r-w-5; if(y-h<m.t)y=baseY+pt.r+12; const b={x,y:y-h,w,h}; if(b.x<m.l||b.x+b.w>W-m.r||b.y<m.t||b.y+b.h>H-m.b)continue; if(boxes.some(a=>!(a.x+a.w<b.x||b.x+b.w<a.x||a.y+a.h<b.y||b.y+b.h<a.y)))continue; boxes.push(b); const ital=pt.taxon?' font-style="italic"':''; out.push(`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="13" fill="#28352a" opacity=".9"${ital}>${esc(label)}</text>`);} return out.join("");}
 
 function renderScatter(){let mode=scatterMode.value; if(mode==="species_active"||mode==="species_all")mode="species"; const xi=parseInt(xGrad.value), yi=parseInt(yGrad.value), filter=scatterStratum.value||"Toutes strates", labelMode=((document.getElementById("scatterPointLabels")?.value)||"hover"), envelopeMode=((document.getElementById("scatterEnvelopeMode")?.value)||"hull"); const gx=GRADIENTS[xi], gy=GRADIENTS[yi], W=1000,H=630,m={l:234,r:92,t:56,b:116}; const sx=v=>m.l+(v-gx.min)/(gx.max-gx.min)*(W-m.l-m.r); const sy=v=>H-m.b-(v-gy.min)/(gy.max-gy.min)*(H-m.t-m.b); const selected=selectedReleves("scatter"); let pts=[], envelopes=[], ghostPts=[], ghostLeaderPts=[], ghostRaw=[];
- if(mode==="species"){selected.forEach(rel=>{const color=releveColor(rel), relRows=rowsWithTaxa(rel,filter), compact=relRows.length>24?"initials":"short"; relRows.forEach(({row,t})=>{const x=t.v[xi],y=t.v[yi]; if(x==null||y==null)return; pts.push({x,y,label:t.n,short:taxonLabel(t.n,compact),sub:`${rel.name||"Sans nom"} · ${row.stratum||"strate non renseignée"} · ${fmt(pct(row),2)} %`,r:Math.max(5,Math.min(18,Math.sqrt(pct(row))*1.7)),fill:color,rel});});});}
+ if(mode==="species"){selected.forEach(rel=>{const color=releveColor(rel), relRows=rowsWithTaxa(rel,filter), compact=relRows.length>24?"initials":"short"; relRows.forEach(({row,t})=>{const x=t.v[xi],y=t.v[yi]; if(x==null||y==null)return; pts.push({x,y,label:t.n,short:taxonLabel(t.n,compact),sub:`${rel.name||"Sans nom"} · ${row.stratum||"strate non renseignée"} · ${fmt(pct(row),2)} %`,r:Math.max(5,Math.min(18,Math.sqrt(pct(row))*1.7)),fill:color,rel,taxon:true});});});}
  else{selected.forEach(rel=>{const color=releveColor(rel), relRows=rowsWithTaxa(rel,filter), usable=[]; relRows.forEach(({row,t})=>{const x=t.v[xi], y=t.v[yi]; if(x==null||y==null)return; const w=pct(row); const sp={x:sx(x),y:sy(y),w,rawX:x,rawY:y,t,row,fill:color,r:2.4}; usable.push(sp);});
    ghostRaw.push(...usable.map(sp=>({x:sp.rawX,y:sp.rawY,label:sp.t.n,short:"",sub:"",r:2.4,fill:color,rel,relName:releveLabel(rel),t:sp.t,row:sp.row,w:sp.w})));
    if(envelopeMode!=="none" && usable.length){const screenPts=usable.map(p=>({x:p.x,y:p.y,w:p.w})); if((envelopeMode==="hull"||envelopeMode==="both") && screenPts.length>=3){const d=expandedHullPath(screenPts,18); if(d)envelopes.push(`<path ${tipAttr(`${releveLabel(rel)} — bornage floristique lissé : ${screenPts.length} espèces positionnées sur les deux axes`)} d="${d}" fill="${color}" opacity=".15" stroke="${color}" stroke-width="2.2" stroke-opacity=".56"></path>`);} else if((envelopeMode==="hull"||envelopeMode==="both") && screenPts.length===2){envelopes.push(`<line ${tipAttr(`${releveLabel(rel)} — amplitude floristique : 2 espèces positionnées sur les deux axes`)} x1="${screenPts[0].x.toFixed(1)}" y1="${screenPts[0].y.toFixed(1)}" x2="${screenPts[1].x.toFixed(1)}" y2="${screenPts[1].y.toFixed(1)}" stroke="${color}" stroke-width="12" stroke-linecap="round" opacity=".18"></line>`);} else if((envelopeMode==="hull"||envelopeMode==="both") && screenPts.length===1){envelopes.push(`<circle ${tipAttr(`${releveLabel(rel)} — une seule espèce positionnable sur les deux axes`)} cx="${screenPts[0].x.toFixed(1)}" cy="${screenPts[0].y.toFixed(1)}" r="18" fill="${color}" opacity=".14" stroke="${color}" stroke-width="1.5" stroke-opacity=".45"></circle>`);} if(envelopeMode==="sd"||envelopeMode==="both"){const e=weightedEllipseSvg(screenPts,color,releveLabel(rel)); if(e)envelopes.push(e);}}
@@ -707,7 +739,7 @@ function renderScatter(){let mode=scatterMode.value; if(mode==="species_active"|
  const circles=pts.map(pt=>`<circle ${tipAttr(`${pt.label} — X ${fmt(pt.x,2)} / Y ${fmt(pt.y,2)} — ${pt.sub}`)} cx="${(pt.px??sx(pt.x)).toFixed(1)}" cy="${(pt.py??sy(pt.y)).toFixed(1)}" r="${pt.r}" fill="${pt.fill}" opacity=".9" stroke="#fff" stroke-width="2.4"></circle>`).join("");
  const svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Écogramme"><rect x="0" y="0" width="${W}" height="${H}" rx="18" fill="#fbfcf9"/><line x1="${m.l}" y1="${H-m.b}" x2="${W-m.r}" y2="${H-m.b}" stroke="#647166"/><line x1="${m.l}" y1="${m.t}" x2="${m.l}" y2="${H-m.b}" stroke="#647166"/>${ticks}<text class="axisPicker" data-axis="x" x="${(m.l+W-m.r)/2}" y="${H-16}" text-anchor="middle" font-weight="700" font-size="22" fill="#172015">${esc(gx.label)} ↻</text><text class="axisPicker" data-axis="y" transform="translate(64 ${(m.t+H-m.b)/2}) rotate(-90)" text-anchor="middle" font-weight="700" font-size="22" fill="#172015">${esc(gy.label)} ↻</text>${envelopes.join("")}${ghostGuides}${ghostPts.join("")}${guides}${circles}${pointLabels}</svg>`;
  document.getElementById("scatterSvg").innerHTML = pts.length?svg:`<div class="empty">Aucun point calculable pour ces axes, cette strate et les relevés sélectionnés.</div>`;
- document.getElementById("scatterInfo").innerHTML = pts.slice(0,16).map(p=>`<div class="miniItem"><strong>${esc(p.label)}</strong><span class="small muted">${esc(gx.short)}=${fmt(p.x)} · ${esc(gy.short)}=${fmt(p.y)} · ${esc(p.sub)}</span></div>`).join("") || `<div class="empty">Aucune donnée.</div>`;
+ document.getElementById("scatterInfo").innerHTML = pts.slice(0,16).map(p=>`<div class="miniItem"><strong>${p.taxon?sciHtml(p.label):esc(p.label)}</strong><span class="small muted">${esc(gx.short)}=${fmt(p.x)} · ${esc(gy.short)}=${fmt(p.y)} · ${esc(p.sub)}</span></div>`).join("") || `<div class="empty">Aucune donnée.</div>`;
 }
 
 function renderCompare(){
@@ -731,7 +763,7 @@ function selectTaxon(id){selectedTaxon=byId.get(Number(id)); if(!selectedTaxon)r
 function addSelected(){if(!selectedTaxon && norm(speciesSearch.value)==="sol nu")selectedTaxon=byId.get(-1); if(!selectedTaxon){toast("Sélectionner une espèce ou « sol nu » dans la liste de recherche.");return;} const r=current(); const mode=coverMode.value; const cover=mode==="pct"?parseFloat(pctValue.value||0):bbValue.value; const stratum=selectedTaxon.id===-1?"Sans végétation":rowStratum.value; r.rows.push({line_id:uid(),tid:selectedTaxon.id,name:selectedTaxon.n,stratum,mode,cover}); touchReleve(r); selectedTaxon=null; speciesSearch.value=""; document.getElementById("selectedTaxon").textContent="Aucune espèce sélectionnée."; save(); renderAll();}
 window.removeRow=function(idx){const r=current(); r.rows.splice(idx,1); touchReleve(r); save(); renderAll();}
 window.moveRow=function(idx,delta){const r=current(); const rows=r.rows; const j=idx+delta; if(j<0||j>=rows.length)return; [rows[idx],rows[j]]=[rows[j],rows[idx]]; touchReleve(r); save(); renderAll();}
-function updateMeta(){const r=current(); r.name=relName.value; r.date=relDate.value; r.observer=relObserver.value; r.site=(window.relSite?relSite.value:""); r.location=relLocation.value; r.area=relArea.value; r.notes=relNotes.value; touchReleve(r); save(); renderReleveSelect(); renderSummary(); renderCompare(); renderScatter();}
+function updateMeta(){const r=current(); r.name=relName.value; r.date=relDate.value; r.observer=relObserver.value; r.site=(window.relSite?relSite.value:""); r.location=relLocation.value; r.area=relArea.value; r.notes=relNotes.value; touchReleve(r); save(); renderReleveSelect(); renderSummary(); renderCompare(); renderScatter(); setEntryTitle(r);}
 function download(filename, text, mime="application/json"){const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:mime})); a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function rowsCsv(){const lines=[["releve_id","releve_nom","site","date","observateur","localisation","surface","taxon_id","nom_scientifique","synonyme","strate","mode_recouvrement","recouvrement_saisi","recouvrement_pct_calcule",...GRADIENTS.map(g=>g.label)]]; state.releves.forEach(r=>r.rows.forEach(row=>{const t=taxonOf(row)||{v:[]}; lines.push([r.id,r.name,r.site||"",r.date,r.observer,r.location,r.area,row.tid,t.n,t.s,row.stratum,row.mode,row.cover,pct(row),...GRADIENTS.map((g,i)=>t.v[i])]);})); return lines.map(line=>line.map(v=>`"${(v??"").toString().replace(/"/g,'""')}"`).join(";")).join("\n");}
 
@@ -931,6 +963,13 @@ function exportCompareCsvFile(){const rows=getCompareTableRows(); if(!rows.lengt
 function exportCompareXlsFile(){const rows=getCompareTableRows(); if(!rows.length){toast("Aucun tableau à exporter.");return;} const html=`<html><head><meta charset="utf-8"></head><body><table>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table></body></html>`; download(`comparaison_releves_${new Date().toISOString().slice(0,10)}.xls`, html, "application/vnd.ms-excel;charset=utf-8");}
 function xmlEsc(v){return (v??"").toString().replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));}
 function exportCompareFodsFile(){const rows=getCompareTableRows(); if(!rows.length){toast("Aucun tableau à exporter.");return;} const body=rows.map(r=>`<table:table-row>${r.map(c=>`<table:table-cell office:value-type="string"><text:p>${xmlEsc(c)}</text:p></table:table-cell>`).join("")}</table:table-row>`).join(""); const xml=`<?xml version="1.0" encoding="UTF-8"?><office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" office:version="1.2"><office:body><office:spreadsheet><table:table table:name="Comparaison">${body}</table:table></office:spreadsheet></office:body></office:document>`; download(`comparaison_releves_${new Date().toISOString().slice(0,10)}.fods`, xml, "application/vnd.oasis.opendocument.spreadsheet-flat-xml;charset=utf-8");}
+function aoaToCsv(rows){return "\ufeff"+rows.map(r=>r.map(csvEscape).join(";")).join("\r\n");}
+function sheetsToXls(sheets){const names=sheets.map(s=>`<x:ExcelWorksheet><x:Name>${esc(s.name)}</x:Name><x:WorksheetOptions/></x:ExcelWorksheet>`).join(""); const tables=sheets.map(s=>`<table border="1">${s.rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table>`).join("<br/>"); return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>${names}</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>${tables}</body></html>`;}
+function sheetsToFods(sheets){const body=sheets.map(s=>`<table:table table:name="${xmlEsc(s.name)}">${s.rows.map(r=>`<table:table-row>${r.map(c=>`<table:table-cell office:value-type="string"><text:p>${xmlEsc(c)}</text:p></table:table-cell>`).join("")}</table:table-row>`).join("")}</table:table>`).join(""); return `<?xml version="1.0" encoding="UTF-8"?><office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" office:mimetype="application/vnd.oasis.opendocument.spreadsheet" office:version="1.2"><office:body><office:spreadsheet>${body}</office:spreadsheet></office:body></office:document>`;}
+function relevesSheets(){return [{name:"Relevés",rows:sheetRowsReleves()},{name:"Lignes",rows:sheetRowsLignes()},{name:"Synthèse",rows:sheetRowsSynthese()}];}
+function exportRelevesCsvFile(){const rows=sheetRowsLignes(); if(rows.length<=1){toast("Aucun relevé à exporter.");return;} download(`mes_releves_lignes_${new Date().toISOString().slice(0,10)}.csv`, aoaToCsv(rows), "text/csv;charset=utf-8");}
+function exportRelevesXlsFile(){if(!(state.releves||[]).length){toast("Aucun relevé à exporter.");return;} download(`mes_releves_${new Date().toISOString().slice(0,10)}.xls`, sheetsToXls(relevesSheets()), "application/vnd.ms-excel;charset=utf-8");}
+function exportRelevesFodsFile(){if(!(state.releves||[]).length){toast("Aucun relevé à exporter.");return;} download(`mes_releves_${new Date().toISOString().slice(0,10)}.fods`, sheetsToFods(relevesSheets()), "application/vnd.oasis.opendocument.spreadsheet-flat-xml;charset=utf-8");}
 async function exportSingleSvgPng(svg,filename){if(!svg){toast("Graphique introuvable.");return;} const img=await imageFromSvg(svg); const vb=(svg.getAttribute("viewBox")||"0 0 800 300").split(/\s+/).map(Number); const w=vb[2]||800,h=vb[3]||300,scale=2,pad=24; const canvas=document.createElement("canvas"); canvas.width=(w+pad*2)*scale; canvas.height=(h+pad*2)*scale; const ctx=canvas.getContext("2d"); ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,pad*scale,pad*scale,w*scale,h*scale); const a=document.createElement("a"); a.href=canvas.toDataURL("image/png"); a.download=filename; a.click();}
 
 function bind(){
@@ -963,6 +1002,12 @@ function bind(){
  exportJson.addEventListener("click",()=>download(`releves_botaniques_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(state,null,2)));
  exportCsv.addEventListener("click",()=>download(`releves_botaniques_lignes_${new Date().toISOString().slice(0,10)}.csv`, rowsCsv(), "text/csv;charset=utf-8"));
  if(window.exportMine) exportMine.addEventListener("click",()=>download(`mes_releves_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(remoteJsonSnapshot(state),null,2)));
+ if(window.exportRelevesCsv)exportRelevesCsv.addEventListener("click",exportRelevesCsvFile);
+ if(window.exportRelevesXls)exportRelevesXls.addEventListener("click",exportRelevesXlsFile);
+ if(window.exportRelevesFods)exportRelevesFods.addEventListener("click",exportRelevesFodsFile);
+ function syncTopbarHeight(){const tb=document.querySelector(".topbar"); if(tb)document.documentElement.style.setProperty("--topbar-h", tb.offsetHeight+"px");}
+ window.addEventListener("resize",syncTopbarHeight); window.addEventListener("load",syncTopbarHeight); setTimeout(syncTopbarHeight,0);
+ if(window.ResizeObserver){const _tb=document.querySelector(".topbar"); if(_tb)new ResizeObserver(syncTopbarHeight).observe(_tb);}
  if(window.exportCompareCsv)exportCompareCsv.addEventListener("click",exportCompareCsvFile);
  if(window.exportCompareXls)exportCompareXls.addEventListener("click",exportCompareXlsFile);
  if(window.exportCompareFods)exportCompareFods.addEventListener("click",exportCompareFodsFile);
@@ -980,7 +1025,7 @@ function bind(){
 let deferredInstallPrompt=null;
 function updateInstallStatus(message,kind="info"){
   const el=document.getElementById("installStatus");
-  if(!el)return;
+  if(!el)return; el.hidden=false;
   const prefix=kind==="ok"?"Prêt":kind==="warn"?"À faire":"Statut";
   el.innerHTML=`<span class="installBadge">${prefix}</span> ${esc(message)}`;
 }
