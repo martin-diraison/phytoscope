@@ -228,13 +228,15 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
 @media(max-width:620px){.authBar{width:100%}.authInput{flex:1 1 auto;min-width:0}}
 </style>
 <style id="v42-topbar">
-:root{--topbar-h:132px}
+:root{--topbar-h:160px}
 .topbar{position:sticky;top:0;z-index:60;background:var(--bg);box-shadow:0 6px 18px rgba(20,50,30,.05)}
-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px 28px 12px}
-.appTitle{flex:1 1 320px;min-width:0}
-.appTitle>div{min-width:0}
-header p{font-size:.9rem;line-height:1.34;max-width:760px}
-.headerActions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:0 0 auto}
+header{display:flex;flex-direction:column;gap:10px;padding:16px 28px 14px}
+.headerTop{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.appLogo{width:72px!important;height:72px!important;border-radius:18px!important;flex:0 0 auto}
+.headerTop h1{margin:0;flex:0 0 auto;white-space:nowrap}
+.headerDesc{margin:0;flex:1 1 180px;min-width:0;color:var(--muted);font-size:.9rem;line-height:1.34}
+.versionPill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 10px;background:var(--brand2);color:#244b2c;font-size:.78rem;font-weight:700;white-space:nowrap;flex:0 0 auto}
+.headerActions{display:flex;align-items:center;gap:10px;flex:0 0 auto}
 .installBtn{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;white-space:nowrap}
 .installBtn svg{flex:0 0 auto}
 .installStatusInline{font-size:.78rem;color:var(--muted);max-width:240px;line-height:1.3}
@@ -243,7 +245,10 @@ header p{font-size:.9rem;line-height:1.34;max-width:760px}
 .addbar{top:calc(var(--topbar-h) + 8px)}
 @media(max-width:760px){
   .topbar{box-shadow:0 4px 14px rgba(20,50,30,.07)}
-  header{padding:12px 14px 9px;gap:9px}
+  header{padding:12px 14px 10px;gap:8px}
+  .appLogo{width:52px!important;height:52px!important;border-radius:14px!important}
+  .headerTop h1{font-size:1.2rem}
+  .headerDesc{font-size:.84rem;flex-basis:100%}
   .headerActions{gap:7px}
   .installBtn span{display:none}
   .installBtn{padding:8px 9px}
@@ -254,21 +259,20 @@ header p{font-size:.9rem;line-height:1.34;max-width:760px}
 <body>
 <div class="topbar">
 <header>
-  <div class="appTitle">
+  <div class="headerTop">
     <img class="appLogo" src="./icons/icon.svg" alt="" aria-hidden="true">
-    <div>
-      <h1>PhytoScope</h1>
-      <p>Application de saisie de relevés phytosociologiques et de visualisation d’indicateurs écologiques associés. <strong class="betaBadge">version bêta · <span id="appVersionTag"></span></strong></p>
+    <h1>PhytoScope</h1>
+    <p class="headerDesc">Application de saisie de relevés phytosociologiques et de visualisation d’indicateurs écologiques associés.</p>
+    <span class="versionPill">bêta · <span id="appVersionTag"></span></span>
+    <div class="headerActions">
+      <button id="installApp" class="secondary installBtn" type="button" title="Installer l’application sur l’appareil">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M11 18.5h2"/></svg>
+        <span>Installer</span>
+      </button>
+      <span id="installStatus" class="installStatusInline" hidden></span>
     </div>
   </div>
-  <div class="headerActions">
-    <button id="installApp" class="secondary installBtn" type="button" title="Installer l’application sur l’appareil">
-      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M11 18.5h2"/></svg>
-      <span>Installer</span>
-    </button>
-    <div class="authBar" id="authBar" aria-live="polite"></div>
-    <span id="installStatus" class="installStatusInline" hidden></span>
-  </div>
+  <div class="authBar" id="authBar" aria-live="polite"></div>
 </header>
 <nav class="tabs noPrint">
   <button class="tab active" data-view="entry"><svg class="ti" viewBox="0 0 24 24"><path d="M12 20s-7-4-7-10a7 7 0 0 1 14 0c0 6-7 10-7 10Z" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 20V9" stroke-linecap="round"/></svg><span class="tlong">Saisie du relevé</span><span class="tshort">Saisie</span></button>
