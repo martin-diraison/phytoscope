@@ -389,7 +389,6 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
       </div>
       <div class="card"><h2>Export des relevés</h2><p class="muted">Export JSON autonome contenant les métadonnées et les lignes floristiques. Les valeurs Baseflor restent embarquées dans l’application.</p><div class="row"><button id="exportJson">Télécharger JSON</button><button class="secondary" id="exportCsv">Télécharger CSV lignes</button></div></div>
       <div class="card"><h2>Import de relevés</h2><p class="muted">Import d’un export JSON généré par cette application. L’import remplace les relevés actuellement stockés après confirmation.</p><input type="file" id="importJson" accept="application/json,.json"></div>
-      <div class="card full"><h2>Table de conversion Braun-Blanquet</h2><table><thead><tr><th>Coefficient</th><th class="num">Recouvrement utilisé</th><th>Interprétation</th></tr></thead><tbody><tr><td>i</td><td class="num">0,01 %</td><td>Individu isolé ; conversion arbitraire demandée.</td></tr><tr><td>r</td><td class="num">0,1 %</td><td>Très rare.</td></tr><tr><td>+</td><td class="num">0,5 %</td><td>Peu abondant, recouvrement négligeable.</td></tr><tr><td>1</td><td class="num">2,5 %</td><td>Abondant mais faible recouvrement.</td></tr><tr><td>2</td><td class="num">15 %</td><td>Recouvrement intermédiaire.</td></tr><tr><td>3</td><td class="num">37,5 %</td><td>Recouvrement important.</td></tr><tr><td>4</td><td class="num">62,5 %</td><td>Recouvrement très important.</td></tr><tr><td>5</td><td class="num">87,5 %</td><td>Recouvrement quasi continu.</td></tr></tbody></table></div>
     </div>
   </section>
 
@@ -397,16 +396,16 @@ header{display:flex;align-items:flex-start;justify-content:space-between;gap:18p
     <div class="screen-head">
       <span class="eyebrow">Référence</span>
       <h1 class="h-screen">Référentiels</h1>
+      <p>Les sources de données et le barème de cotation utilisés par l’application.</p>
     </div>
 
     <div class="card">
-      <h2>Module phytosociologique exploratoire — cadrage</h2>
-      <p>Le module phytosociologique est volontairement séparé des calculs écologiques. Sans table syntaxon → espèces caractéristiques / différentielles / compagnes, l’application ne doit pas produire de rattachement déterministe. La première version préparera seulement une structure de score exploratoire.</p>
-      <div class="grid2">
-        <div class="notice"><strong>À intégrer ultérieurement</strong><br>CatVeg / Catalogue des végétations, PVF2, HABREF, correspondances EUNIS/Natura 2000, éventuels catalogues régionaux CBN.</div>
-        <div class="notice"><strong>Principe de score</strong><br>Similarité floristique + espèces diagnostiques + cohérence écologique Baseflor + cohérence géographique − espèces contradictoires.</div>
-      </div>
+      <h2>Sources de référence</h2>
+      <p><strong>BaseFlor</strong> — Philippe Julve, <em>« Baseflor. Index botanique, écologique et chorologique de la flore de France »</em> (programme Catminat). Fournit la nomenclature des taxons et les valeurs indicatrices écologiques (lumière, température, humidité édaphique, réaction du sol, niveau trophique, etc.) exploitées dans les gradients et les écogrammes.</p>
+      <p><strong>Échelle d’abondance-dominance de Braun-Blanquet</strong> — barème de cotation des relevés phytosociologiques utilisé à la saisie. Sa conversion en pourcentages de recouvrement est donnée ci-dessous.</p>
     </div>
+
+    <div class="card full"><h2>Table de conversion Braun-Blanquet</h2><table><thead><tr><th>Coefficient</th><th class="num">Recouvrement utilisé</th><th>Interprétation</th></tr></thead><tbody><tr><td>i</td><td class="num">0,01 %</td><td>Individu isolé ; conversion arbitraire demandée.</td></tr><tr><td>r</td><td class="num">0,1 %</td><td>Très rare.</td></tr><tr><td>+</td><td class="num">0,5 %</td><td>Peu abondant, recouvrement négligeable.</td></tr><tr><td>1</td><td class="num">2,5 %</td><td>Abondant mais faible recouvrement.</td></tr><tr><td>2</td><td class="num">15 %</td><td>Recouvrement intermédiaire.</td></tr><tr><td>3</td><td class="num">37,5 %</td><td>Recouvrement important.</td></tr><tr><td>4</td><td class="num">62,5 %</td><td>Recouvrement très important.</td></tr><tr><td>5</td><td class="num">87,5 %</td><td>Recouvrement quasi continu.</td></tr></tbody></table></div>
   </section>
 </main>
 <script>
@@ -433,7 +432,7 @@ const BB = {"i":0.01,"r":0.1,"+":0.5,"1":2.5,"2":15,"3":37.5,"4":62.5,"5":87.5};
 const STORE_KEY = "botano_baseflor_releves_v03";
 const GOOGLE_SYNC_KEY = "botano_baseflor_google_sync_v01";
 const GOOGLE_SHEET_NAME = "Relevés botaniques - données personnelles";
-const APP_VERSION = "v35 · 2026-06-28";
+const APP_VERSION = "v39 · 2026-06-29";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 const byId = new Map(TAXA.map(t => [t.id, t]));
 const byName = new Map(TAXA.map(t => [t.n, t]));
@@ -1278,7 +1277,7 @@ setTimeout(function(){try{if(window.__loadCorruption&&typeof toast==="function")
       updated_at:r.updated_at||new Date().toISOString()
     }));
     if(!rows.length) return;
-    const { error } = await sb.from("releves").upsert(rows, { onConflict:"id" });
+    const { error } = await sb.from("releves").upsert(rows, { onConflict:"proprietaire_id,id" });
     if(error) throw error;
   }
   async function supaDeleteRemote(id){

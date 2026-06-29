@@ -1,4 +1,4 @@
-const CACHE_NAME = "releves-botaniques-pwa-v35-tourbe-20260628";
+const CACHE_NAME = "phytoscope-pwa-v39-syncfix-20260629";
 const APP_SHELL = [
   "./",
   "./index.html",
